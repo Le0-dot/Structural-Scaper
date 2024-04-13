@@ -1,0 +1,18 @@
+<html>
+    <script type="text/javascript">
+	function processInput(event) {
+	    // event.target -> form
+	    // event.target[0] -> input
+	    // event.target[0].value -> url
+	    event.target[0].value = encodeURIComponent(event.target[0].value)
+	}
+    </script>
+    <body>
+	<form onsubmit="processInput" action="/select" id="form">
+	    <label for="url">URL: </label>
+	    <input type="text" id="url" name="url">
+	    <br>
+	    <input type="submit" value="Open">
+	</form>
+    </body>
+</html>

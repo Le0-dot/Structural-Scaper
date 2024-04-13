@@ -1,0 +1,37 @@
+<html>
+    <head>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script src="/js/detail.js"></script>
+    </head>
+    <body>
+	<table>
+	    <thead>
+		<th>Tag</th>
+		<th>Id</th>
+		<th>Classes</th>
+	    </thead>
+	    <tbody id="selector-table-body">
+	    {% for selector in selectors %}
+		<tr>
+		    <td class="align-top">{{ selector.tag }}</td>
+		    <td class="align-top">
+		    {% if selector.id is not none %}
+			<input type="checkbox" id="{{ selector.tag }}-id-{{ loop.index }}" checked="checked">
+			<label for="{{ selector.tag }}-id-{{ loop.index }}">{{ selector.id }}</label>
+		    {% endif %}
+		    </td>
+		    <td class="grow">
+		    {% for class in selector.classes %}
+			<div>
+			    <input type="checkbox" id="{{ selector.tag }}-{{ class }}" checked="checked">
+			    <label for="{{ selector.tag }}-class }}">{{ class }}</label>
+			</div>
+		    {% endfor %}
+		    </td>
+		</tr>
+	    {% endfor %}
+	    </tbody>
+	</table>
+	<button onclick="goToNext()">Confirm</button>
+    </body>
+</html>
