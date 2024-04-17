@@ -18,3 +18,7 @@ def push(session: dict[str, Any], selector: str) -> bool:
 
 def get_url(session: dict[str, Any]) -> str:
     return session['url']
+
+
+def get_selectors(session: dict[str, Any]) -> list[str]:
+    return session['selectors']

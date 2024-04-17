@@ -39,11 +39,16 @@ def remove_js(soup: bs) -> None:
 
 
 @ttl_cache(ttl=300)
-def get_and_render(url: str, template: Template) -> str:
+def get_and_clean(url: str) -> bs:
     request = requests.get(url)
     soup = bs(request.text, "html.parser")
-
     remove_js(soup)
+    return soup
+
+
+@ttl_cache(ttl=300)
+def get_and_render(url: str, template: Template) -> str:
+    soup = get_and_clean(url)
 
     bindings = {
         "style": soup.find("head style") or "",
