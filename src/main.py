@@ -2,13 +2,13 @@ from urllib.parse import unquote
 
 from bs4 import BeautifulSoup as bs
 from jinja2 import Environment, FileSystemLoader
-from pydantic import BaseModel
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
-import .state
+import state
+from .selector import parse_selector
 from .cleaner import get_and_render
 
 app = FastAPI()
@@ -18,36 +18,6 @@ env = Environment(loader=FileSystemLoader("./templates"))
 
 app.mount('/js', StaticFiles(directory='static/js'), name='js')
 
-
-class TagSelector(BaseModel):
-    tag: str
-    id: str | None = None
-    classes: list[str] = []
-
-def split_selector(selector: str) -> list[str]:
-    result = []
-    start_idx = 0
-    for idx, char in enumerate(selector):
-        if char in '.#':
-            result.append(selector[start_idx:idx])
-            start_idx = idx
-    result.append(selector[start_idx:])
-    return result
-
-def parse_tag_selector(selector: str) -> TagSelector:
-    values = split_selector(selector)
-    tag_selector = TagSelector(tag=values[0])
-    for value in values[1:]:
-        if value.startswith('#'):
-            tag_selector.id = value[1:]
-        elif value.startswith('.'):
-            tag_selector.classes.append(value[1:])
-        else:
-            raise Exception('Invalid selector received')
-    return tag_selector
-
-def parse_selector(selector: str) -> list[TagSelector]:
-    return list(map(parse_tag_selector, selector.split()))
 
 
 @app.get('/', response_class=FileResponse)
