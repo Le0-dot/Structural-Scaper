@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
+import .state
 from .cleaner import get_and_render
 
 app = FastAPI()
@@ -51,16 +52,13 @@ def parse_selector(selector: str) -> list[TagSelector]:
 
 @app.get('/', response_class=FileResponse)
 def index(request: Request):
-    request.session['step'] = 0
-    request.session['selectors'] = []
-    print(request.session['step'])
+    state.init(request.session)
     return './static/html/index.html'
 
 @app.get('/select', response_class=HTMLResponse)
 def select(request: Request, url: str):
-    print(request.session['step'])
     url = unquote(url)
-    request.session['url'] = url
+    state.select(request.session, url)
     return get_and_render(url, env.get_template('selector.html'))
 
 @app.get('/select/details', response_class=HTMLResponse)
@@ -71,11 +69,8 @@ def details(selector: str):
 
 @app.get('/select/next', response_class=RedirectResponse)
 def next(request: Request, selector: str):
-    request.session['step'] += 1
-    request.session['selectors'].append(selector)
-    print(request.session['step'])
-    if request.session['step'] < 3:
-        return f'/select?url={request.session["url"]}'
+    if state.push(request.session, selector):
+        return f'/select?url={state.get_url(request.session)}'
     else:
         return f'/select/confirm'
 
