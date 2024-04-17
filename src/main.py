@@ -1,3 +1,4 @@
+from random import randint
 from urllib.parse import unquote
 
 from bs4 import BeautifulSoup as bs
@@ -11,8 +12,11 @@ import state
 from .selector import parse_selector
 from .cleaner import get_and_render
 
+def gen_secret(length: int) -> str:
+    return ''.join([chr(randint(0, 128)) for _ in range(length)])
+
 app = FastAPI()
-app.add_middleware(SessionMiddleware, secret_key='SECRET_KEY') # Change to random string
+app.add_middleware(SessionMiddleware, secret_key=gen_secret(128))
 
 env = Environment(loader=FileSystemLoader("./templates"))
 
