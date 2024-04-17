@@ -1,60 +1,22 @@
-import requests
-from urllib.parse import urlparse, unquote
+from urllib.parse import unquote
 
-from bs4 import BeautifulSoup as bs, NavigableString
+from bs4 import BeautifulSoup as bs
 from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
-from cachetools.func import ttl_cache
 
+from .cleaner import get_and_render
 
 app = FastAPI()
-app.add_middleware(SessionMiddleware, secret_key='SECRET_KEY')
+app.add_middleware(SessionMiddleware, secret_key='SECRET_KEY') # Change to random string
 
 env = Environment(loader=FileSystemLoader("./templates"))
 
 app.mount('/js', StaticFiles(directory='static/js'), name='js')
 
-def get_url_base(url: str) -> str:
-    parsed = urlparse(url)
-    return f'{parsed.scheme}://{parsed.netloc}'
-
-def find_css(soup: bs, base: str) -> str:
-    links = soup.find_all('link', rel='stylesheet')#type='text/css')
-    for link in links:
-        if link['href'].startswith('http'):
-            continue
-        if not link['href'].startswith('/'):
-            link['href'] = '/' + link['href']
-        link['href'] = base + link['href']
-    return '\n'.join(map(str, links))
-
-def remove_js(soup: bs) -> None:
-    body = soup.find('body')
-    if body is None or isinstance(body, NavigableString):
-        return
-    for tag in body.find_all('script'):
-        tag.decompose()
-
-
-@ttl_cache(ttl=300)
-def get_and_render(url: str) -> str:
-    request = requests.get(url)
-    soup = bs(request.text, 'html.parser')
-
-    remove_js(soup)
-
-    template = env.get_template("selector.html")
-    bindings = {
-        'style': soup.find('head style') or '',
-        'links': find_css(soup, get_url_base(url)),
-        'body': soup.find('body'),
-    }
-
-    return template.render(bindings)
 
 class TagSelector(BaseModel):
     tag: str
@@ -99,7 +61,7 @@ def select(request: Request, url: str):
     print(request.session['step'])
     url = unquote(url)
     request.session['url'] = url
-    return get_and_render(url)
+    return get_and_render(url, env.get_template('selector.html'))
 
 @app.get('/select/details', response_class=HTMLResponse)
 def details(selector: str):
