@@ -4,7 +4,9 @@ function elementSelector(element) {
     var classes = "";
     if(element.className) {
         for(var c of element.className.trim().split(/\s+/)) {
-            classes += "." + c;
+            if(!c.includes(":")) {
+                classes += "." + c;
+            }
         }
     }
     return tag + id + classes;
@@ -20,28 +22,6 @@ function generateQuerySelector(element) {
     list.push("html");
 
     return list.reverse().join(" ");
-    // const list = []
-    //
-    // var tag = element;
-    // list.push({
-    //     "tag": tag.tagName.toLowerCase(),
-    //     "id": tag.id ? tag.id : null,
-    //     "classes": tag.className ? tag.className.trim().split(/\s+/) : [],
-    // });
-    //
-    // do {
-    //     tag = tag.parentNode;
-    //
-    //     var selector = {
-    //         "tag": tag.tagName.toLowerCase(),
-    //         "id": tag.id ? tag.id : null,
-    //         "classes": tag.className ? tag.className.trim().split(/\s+/) : [],
-    //     };
-    //     list.push(selector);
-    //
-    // } while(tag.tagName.toLowerCase() != "html");
-    //
-    // return list.reverse();
 }
 
 function goToDetail(element) {
