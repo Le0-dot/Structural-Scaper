@@ -1,7 +1,9 @@
 from urllib.parse import urlparse
 from functools import partial
 
-import requests
+# import requests
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup as bs, Tag
 from jinja2.environment import Template
 from cachetools.func import ttl_cache
@@ -39,16 +41,18 @@ def remove_js(soup: bs) -> None:
 
 
 @ttl_cache(ttl=300)
-def get_and_clean(url: str) -> bs:
-    request = requests.get(url)
-    soup = bs(request.text, "html.parser")
+def get_and_clean(url: str, driver: WebDriver) -> bs:
+    driver.get(url)
+    html = driver.find_element(By.TAG_NAME, 'html').get_attribute('outerHTML')
+    assert html is not None
+    soup = bs(html, "html.parser")
     remove_js(soup)
     return soup
 
 
 @ttl_cache(ttl=300)
-def get_and_render(url: str, template: Template) -> str:
-    soup = get_and_clean(url)
+def get_and_render(url: str, template: Template, driver: WebDriver) -> str:
+    soup = get_and_clean(url, driver)
 
     bindings = {
         "style": soup.find("head style") or "",

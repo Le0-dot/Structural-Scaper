@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
+from selenium import webdriver
 
 import state
 import parser
@@ -24,6 +25,7 @@ app.add_middleware(SessionMiddleware, secret_key="sdfadsfa")  # gen_secret(128))
 env = Environment(loader=FileSystemLoader("./templates"))
 
 app.mount("/js", StaticFiles(directory="static/js"), name="js")
+driver = webdriver.Firefox()
 
 
 @app.get("/", response_class=FileResponse)
@@ -36,7 +38,7 @@ def index(request: Request):
 def select(request: Request, url: str):
     url = unquote(url)
     state.select(request.session, url)
-    return get_and_render(url, env.get_template("selector.html"))
+    return get_and_render(url, env.get_template("selector.html"), driver)
 
 
 @app.get("/select/details", response_class=HTMLResponse)
@@ -56,7 +58,7 @@ def next(request: Request, selector: str):
 
 @app.get("/select/confirm", response_class=HTMLResponse)
 def confirm(request: Request):
-    soup = get_and_clean(state.get_url(request.session))
+    soup = get_and_clean(state.get_url(request.session), driver)
     selectors = state.get_selectors(request.session)
     selectors = dict(enumerate(selectors))
     result = parser.select(soup, selectors)
