@@ -1,7 +1,6 @@
 from random import randint
 from urllib.parse import unquote
 
-from bs4 import BeautifulSoup as bs
 from jinja2 import Environment, FileSystemLoader
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
@@ -50,6 +49,7 @@ def details(selector: str):
 
 @app.get("/select/next", response_class=RedirectResponse)
 def next(request: Request, selector: str):
+    print(selector)
     if state.push(request.session, selector):
         return f"/select?url={state.get_url(request.session)}"
     else:
@@ -61,6 +61,6 @@ def confirm(request: Request):
     soup = get_and_clean(state.get_url(request.session), driver)
     selectors = state.get_selectors(request.session)
     selectors = dict(enumerate(selectors))
-    result = parser.select(soup, selectors)
+    result = parser.select_all(soup, selectors)
     template = env.get_template("confirm.html")
     return template.render({"result": result})
