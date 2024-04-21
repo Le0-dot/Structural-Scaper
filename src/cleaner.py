@@ -48,7 +48,7 @@ def get_and_clean(url: str, driver: WebDriver, wait_seconds: int = 3) -> bs:
     driver.get(url)
     sleep(wait_seconds)
     driver.current_url
-    html = driver.find_element(By.TAG_NAME, 'html').get_attribute('outerHTML')
+    html = driver.find_element(By.TAG_NAME, "html").get_attribute("outerHTML")
     assert html is not None
     soup = bs(html, "html.parser")
     remove_js(soup)

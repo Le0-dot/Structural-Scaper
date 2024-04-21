@@ -10,7 +10,7 @@ def dict_map(func: Callable, dictionary: dict) -> dict:
 
 
 def select(soup: bs, selector: str) -> str:
-    return '\n'.join(map(str, soup.select(selector)))
+    return "\n".join(map(str, soup.select(selector)))
     # result = soup.select_one(selector)
     # if result is None:
     #     raise Exception("Selector is not valid for current page")
