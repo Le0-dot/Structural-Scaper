@@ -1,7 +1,10 @@
+# Using BeautifulSoup instead of native selenium search,
+# since need to mutate DOM in memory
+
 from urllib.parse import urlparse
 from functools import partial
+from time import sleep
 
-# import requests
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup as bs, Tag
@@ -41,8 +44,10 @@ def remove_js(soup: bs) -> None:
 
 
 @ttl_cache(ttl=300)
-def get_and_clean(url: str, driver: WebDriver) -> bs:
+def get_and_clean(url: str, driver: WebDriver, wait_seconds: int = 3) -> bs:
     driver.get(url)
+    sleep(wait_seconds)
+    driver.current_url
     html = driver.find_element(By.TAG_NAME, 'html').get_attribute('outerHTML')
     assert html is not None
     soup = bs(html, "html.parser")
