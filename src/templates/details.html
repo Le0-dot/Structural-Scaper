@@ -13,7 +13,10 @@
 	    <tbody id="selector-table-body">
 	    {% for selector in selectors %}
 		<tr>
-		    <td class="align-top">{{ selector.tag }}</td>
+		    <td class="align-top">
+			<input type="checkbox" id="{{ selector.tag }}-{{ loop.index }}" checked="checked">
+			<label for="{{ selector.tag }}-{{ loop.index }}">{{ selector.tag }}</label>
+		    </td>
 		    <td class="align-top">
 		    {% if selector.id is not none %}
 			<input type="checkbox" id="{{ selector.tag }}-id-{{ loop.index }}" checked="checked">
