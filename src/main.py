@@ -2,9 +2,10 @@ from random import randint
 from urllib.parse import unquote
 
 from fastapi import Depends, FastAPI, Request
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from jinja2 import Environment, FileSystemLoader
 from selenium.webdriver.ie.webdriver import WebDriver
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -25,10 +26,10 @@ app.add_middleware(SessionMiddleware, secret_key="sdfadsfa")  # gen_secret(128))
 app.mount("/js", StaticFiles(directory="static/js"), name="js")
 
 
-@app.get("/", response_class=FileResponse)
-def index(request: Request):
+@app.get("/", response_class=HTMLResponse)
+def index(request: Request, templates: Jinja2Templates = Depends(Templates.get)):
     state.init(request.session)
-    return "./static/html/index.html"
+    return templates.TemplateResponse(name="index.html", request=request)
 
 
 @app.get("/select", response_class=HTMLResponse)
@@ -41,17 +42,19 @@ def select(
     url = unquote(url)
     state.select(request.session, url)
     return templates.TemplateResponse(
-        "selector.html",
-        get_context(url, driver)
+        name="selector.html",
+        context=get_context(url, driver),
+        request=request,
     )
 
 
 @app.get("/select/details", response_class=HTMLResponse)
-def details(selector: str, templates: Jinja2Templates = Depends(Templates.get)):
+def details(request: Request, selector: str, templates: Jinja2Templates = Depends(Templates.get)):
     selectors = parse_selector(selector)
     return templates.TemplateResponse(
-        "details.html",
-        {"selectors": selectors}
+        name="details.html",
+        context={"selectors": selectors},
+        request=request,
     )
 
 
@@ -73,6 +76,7 @@ def confirm(
     selectors = dict(enumerate(selectors))
     result = parser.select_all(soup, selectors)
     return templates.TemplateResponse(
-        "confirm.html",
-        {"result": result}
+        name="confirm.html",
+        context={"result": result},
+        request=request,
     )

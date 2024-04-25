@@ -15,5 +15,5 @@ def resource(factory):
     return Resource
 
 
-Templates = resource(lambda: Jinja2Templates("templates"))
+Templates = resource(lambda: Jinja2Templates("templates", autoescape=False, auto_reload=True))
 Driver = resource(lambda: webdriver.Firefox())
