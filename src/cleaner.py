@@ -1,6 +1,7 @@
 # Using BeautifulSoup instead of native selenium search,
 # since need to mutate DOM in memory
 
+from typing import Any
 from urllib.parse import urlparse
 from functools import partial
 from time import sleep
@@ -17,14 +18,19 @@ def get_host(url: str) -> str:
 
 
 def complete_link(link: Tag, host: str) -> Tag:
-    href = link["href"]
-    assert isinstance(href, str)
+    if link.has_attr("href"):
+        attr = "href"
+    elif link.has_attr("data-href"):
+        attr = "data-href"
+    else:
+        return link
+    href = str(link[attr])
 
     if href.startswith("http"):
         return link
     if not href.startswith("/"):
         link["href"] = "/" + href
-    link["href"] = host + href
+    link[attr] = host + href
     return link
 
 
@@ -35,10 +41,7 @@ def find_css(soup: bs, host: str) -> str:
 
 
 def remove_js(soup: bs) -> None:
-    body = soup.find("body")
-    assert isinstance(body, Tag)
-
-    for tag in body.find_all("script"):
+    for tag in soup.find_all("script"):
         tag.decompose()
 
 
@@ -47,20 +50,17 @@ def get_clean(url: str, driver: WebDriver, wait_seconds: int = 3) -> bs:
     driver.get(url)
     sleep(wait_seconds)
 
-    html = driver.find_element(By.TAG_NAME, "html").get_attribute("outerHTML")
-    assert html is not None
-
-    soup = bs(html, "html.parser")
+    soup = bs(driver.page_source, "html.parser")
     remove_js(soup)
 
     return soup
 
 
 @ttl_cache(ttl=300)
-def get_context(url: str, driver: WebDriver) -> dict[str, str]:
+def get_context(url: str, driver: WebDriver) -> dict[str, Any]:
     soup = get_clean(url, driver)
     return {
-        "style": str(soup.find("head style")) or "",
+        "style": soup.find("head style") or "",
         "links": find_css(soup, get_host(url)),
-        "body": str(soup.find("body")),
+        "body": soup.find("body"),
     }
