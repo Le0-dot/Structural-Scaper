@@ -1,4 +1,4 @@
-from jinja2 import Environment, FileSystemLoader
+from fastapi.templating import Jinja2Templates
 from selenium import webdriver
 
 
@@ -15,5 +15,5 @@ def resource(factory):
     return Resource
 
 
-Env = resource(lambda: Environment(loader=FileSystemLoader("./templates")))
+Templates = resource(lambda: Jinja2Templates("templates"))
 Driver = resource(lambda: webdriver.Firefox())
