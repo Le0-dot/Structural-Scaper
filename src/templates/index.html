@@ -8,7 +8,7 @@
 	}
     </script>
     <body>
-	<form onsubmit="processInput" action="/select" id="form">
+	<form onsubmit="processInput" action="{{ url_for('select') }}" id="form">
 	    <label for="url">URL: </label>
 	    <input type="text" id="url" name="url">
 	    <br>
