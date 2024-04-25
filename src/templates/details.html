@@ -1,7 +1,14 @@
 <html>
     <head>
 	<script src="https://cdn.tailwindcss.com"></script>
-	<script src="/js/detail.js"></script>
+	<script src="{{ url_for('js', path='/selector_to_str.js') }}"></script>
+	<script>
+	    function goToNext() {
+		var selector = selectorToStr();
+		selector = encodeURIComponent(selector);
+		window.location.href = "{{ url_for('next') }}" + "?selector=" + selector;
+	    }
+	</script>
     </head>
     <body>
 	<table>
