@@ -1,0 +1,20 @@
+<div class="flex-col">
+    <div>
+	<label for="name">Name: </label>
+	<input type="text" id="name" value="{{ name if name is not none }}"/>
+    </div>
+    <div class="flex flex-row">
+	<label class="flex-none" for="selector">Selector: </label>
+	<div class="flex-auto flex flex-row" id="selector">
+	    <span class="flex-auto">
+		{% if selector is none %}
+		    None
+		{% else %}
+		    {{ selector }}
+		{% endif %}
+	    </span>
+	    <a class="flex-auto" hx-put="{{ url_for('current').include_query_params(idx=idx) }}" hx-swap="none" href="{{ url_for('select') }}">Select</button>
+	</div>
+    </div>
+    <br>
+</div>
