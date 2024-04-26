@@ -1,16 +1,15 @@
 from random import randint
 from urllib.parse import unquote
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from jinja2 import Environment, FileSystemLoader
 from selenium.webdriver.ie.webdriver import WebDriver
 from starlette.middleware.sessions import SessionMiddleware
 
-import state
 import parser
+from state import State
 from selector import parse_selector
 from cleaner import get_clean, get_context
 from resources import Templates, Driver
@@ -28,19 +27,44 @@ app.mount("/js", StaticFiles(directory="static/js"), name="js")
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, templates: Jinja2Templates = Depends(Templates.get)):
-    state.init(request.session)
     return templates.TemplateResponse(name="index.html", request=request)
+
+
+@app.get("/init", response_class=RedirectResponse)
+def init(request: Request, url: str, delay: int):
+    State(request).init(unquote(url), delay)
+    return str(request.url_for("recipe"))
+
+
+@app.get("/recipe", response_class=HTMLResponse)
+def recipe(request: Request, templates: Jinja2Templates = Depends(Templates.get)):
+    return templates.TemplateResponse(
+        name="recipe.html",
+        request=request,
+    )
+
+
+@app.get("/extractor", response_class=HTMLResponse)
+def extractor(request: Request, templates: Jinja2Templates = Depends(Templates.get)):
+    return templates.TemplateResponse(
+        name="extractor.html",
+        context={"idx": 0},
+        request=request,
+    )
+
+
+@app.put("/recipe/current", status_code=status.HTTP_201_CREATED)
+def current(request: Request, idx: int):
+    State(request).current_extractor_idx = idx
 
 
 @app.get("/select", response_class=HTMLResponse)
 def select(
     request: Request,
-    url: str,
     templates: Jinja2Templates = Depends(Templates.get),
     driver: WebDriver = Depends(Driver.get),
 ):
-    url = unquote(url)
-    state.select(request.session, url)
+    url = State(request).url
     return templates.TemplateResponse(
         name="selector.html",
         context=get_context(url, driver),
@@ -49,7 +73,9 @@ def select(
 
 
 @app.get("/select/details", response_class=HTMLResponse)
-def details(request: Request, selector: str, templates: Jinja2Templates = Depends(Templates.get)):
+def details(
+    request: Request, selector: str, templates: Jinja2Templates = Depends(Templates.get)
+):
     selectors = parse_selector(selector)
     return templates.TemplateResponse(
         name="details.html",
@@ -60,23 +86,27 @@ def details(request: Request, selector: str, templates: Jinja2Templates = Depend
 
 @app.get("/select/next", response_class=RedirectResponse)
 def next(request: Request, selector: str):
-    if state.push(request.session, selector):
-        return f"/select?url={state.get_url(request.session)}"
-    return "/select/confirm"
+    state = State(request)
 
+    assert state.current_extractor is not None
+    state.current_extractor.selector = selector
+    del state.current_extractor
 
-@app.get("/select/confirm", response_class=HTMLResponse)
-def confirm(
-    request: Request,
-    templates: Jinja2Templates = Depends(Templates.get),
-    driver: WebDriver = Depends(Driver.get),
-):
-    soup = get_clean(state.get_url(request.session), driver)
-    selectors = state.get_selectors(request.session)
-    selectors = dict(enumerate(selectors))
-    result = parser.select_all(soup, selectors)
-    return templates.TemplateResponse(
-        name="confirm.html",
-        context={"result": result},
-        request=request,
-    )
+    return request.url_for("recipe")
+
+#
+# @app.get("/select/confirm", response_class=HTMLResponse)
+# def confirm(
+#     request: Request,
+#     templates: Jinja2Templates = Depends(Templates.get),
+#     driver: WebDriver = Depends(Driver.get),
+# ):
+#     soup = get_clean(state.get_url(request.session), driver)
+#     selectors = state.get_selectors(request.session)
+#     selectors = dict(enumerate(selectors))
+#     result = parser.select_all(soup, selectors)
+#     return templates.TemplateResponse(
+#         name="confirm.html",
+#         context={"result": result},
+#         request=request,
+#     )
