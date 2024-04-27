@@ -1,7 +1,14 @@
-<div class="flex-col">
+<div id="extractor" class="flex-col">
     <div>
 	<label for="name">Name: </label>
-	<input type="text" id="name" value="{{ name if name is not none }}"/>
+	<input
+	    id="name"
+	    name="name"
+	    value="{{ name if name is not none }}"
+	    hx-put="{{ url_for('put_name', id=id) }}"
+	    hx-trigger="input changed delay:500ms"
+	    hx-ext="json-enc"
+	/>
     </div>
     <div class="flex flex-row">
 	<label class="flex-none" for="selector">Selector: </label>
@@ -13,8 +20,16 @@
 		    {{ selector }}
 		{% endif %}
 	    </span>
-	    <a class="flex-auto" hx-put="{{ url_for('current').include_query_params(idx=idx) }}" hx-swap="none" href="{{ url_for('select') }}">Select</button>
+	    <a class="flex-auto" href="{{ url_for('select').include_query_params(id=id) }}">Select</a>
 	</div>
     </div>
+    <button
+	hx-delete="{{ url_for('remove', id=id) }}"
+	hx-trigger="click"
+	hx-target="closest div#extractor"
+	hx-swap="delete"
+    >
+	Delete
+    </button>
     <br>
 </div>

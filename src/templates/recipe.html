@@ -1,12 +1,17 @@
 <html>
     <head>
 	<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+	<script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
 	<script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="flex">
 	<div>
 	    <h2>Extractors</h2>
-	    <div id="extractors"></div>
+	    <div id="extractors">
+		{% for extractor in extractors %}
+		    {{ extractor }}
+		{% endfor %}
+	    </div>
 	    <button
 		hx-get="{{ url_for('extractor') }}"
 		hx-trigger="click"
