@@ -30,8 +30,10 @@ class DictObject:
             raise AttributeError(f"No attribute {name} found in class {self.__class__}")
         del self.data[name]
 
-    def to_dict(self) -> dict[str, Any]:
-        return {k: v for k, v in self.data.items() if self._allowed_attr(k)}
+    def to_dict(self, **kwargs) -> dict[str, Any]:
+        dictionary = {k: v for k, v in self.data.items() if self._allowed_attr(k)}
+        dictionary.update(kwargs)
+        return dictionary
 
 
 
