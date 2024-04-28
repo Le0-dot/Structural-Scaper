@@ -1,3 +1,15 @@
+{% macro checkbox(name, value, checked=true) %}
+    <div class="checkbox">
+	<input
+	    name="{{ name }}"
+	    value="{{ value }}"
+	    id="{{ name }}"
+	    type="checkbox"
+	    checked="checked"
+	>
+	<label for="{{ name }}">{{ value }}</label>
+    <div>
+{% endmacro %}
 <html>
     <head>
 	<script src="https://unpkg.com/htmx.org@1.9.12"></script>
@@ -21,40 +33,17 @@
 	    {% for selector in selectors %}
 		<tr>
 		    <td class="align-top">
-			<input
-			    name="tag-{{ loop.index }}"
-			    value="{{ selector.tag }}"
-			    id="tag-{{ loop.index }}"
-			    type="checkbox"
-			    checked="checked"
-			>
-			<label for="tag-{{ loop.index }}">{{ selector.tag }}</label>
+			{{ checkbox("tag-{}".format(loop.index), selector.tag) }}
 		    </td>
 		    <td class="align-top">
 		    {% if selector.id is not none %}
-			<input
-			    name="id-{{ loop.index }}"
-			    value="{{ selector.id }}"
-			    id="id-{{ loop.index }}"
-			    type="checkbox"
-			    checked="checked"
-			>
-			<label for="id-{{ loop.index }}">{{ selector.id }}</label>
+			{{ checkbox("id-{}".format(loop.index), selector.id) }}
 		    {% endif %}
 		    </td>
-		    <td class="grow">
+		    <td class="grow flex flex-col">
 		    {% set outer_loop = loop %}
 		    {% for class in selector.classes %}
-			<div>
-			    <input
-				name="class-{{ outer_loop.index }}"
-				value="{{ class }}"
-				id="class-{{ outer_loop.index }}"
-				type="checkbox"
-				checked="checked"
-			    >
-			    <label for="class-{{ outer_loop.index }}-{{ loop.index }}">{{ class }}</label>
-			</div>
+			{{ checkbox("class-{}".format(outer_loop.index), class) }}
 		    {% endfor %}
 		    </td>
 		</tr>
