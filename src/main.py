@@ -103,11 +103,21 @@ def select(
     )
 
 
+@app.put("/select/selector", status_code=status.HTTP_200_OK)
+def put_selector(request: Request, data: str = Body()):
+    print(data)
+    state = State(request)
+    assert state.current_extractor is not None
+    state.current_extractor.selector = data
+
+
 @app.get("/select/details", response_class=HTMLResponse)
 def details(
-    request: Request, selector: str, templates: Jinja2Templates = Depends(Templates.get)
+    request: Request, templates: Jinja2Templates = Depends(Templates.get)
 ):
-    selectors = parse_selector(selector)
+    state = State(request)
+    assert state.current_extractor is not None
+    selectors = parse_selector(state.current_extractor.selector)
     return templates.TemplateResponse(
         name="details.html",
         context={"selectors": selectors},

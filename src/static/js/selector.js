@@ -24,10 +24,13 @@ function generateQuerySelector(element) {
     return list.reverse().join(" ");
 }
 
-function goToDetail(element) {
+async function goToDetail(element) {
     var selector = generateQuerySelector(element);
-    selector = encodeURIComponent(selector);
-    window.location.href = "/select/details?selector=" + selector;
+    await fetch("/select/selector", {
+        method: "PUT",
+        body: selector,
+    });
+    window.location.href = "/select/details";
 }
 
-window.onclick = e => goToDetail(e.target);
+window.onclick = async (e) => await goToDetail(e.target);
