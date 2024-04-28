@@ -96,10 +96,9 @@ def select(
 ):
     state = State(request)
     state.current_extractor_id = id
-    url = state.url
     return templates.TemplateResponse(
         name="selector.html",
-        context=get_context(url, driver),
+        context=get_context(state.url, driver),
         request=request,
     )
 
