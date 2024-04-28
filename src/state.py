@@ -36,7 +36,6 @@ class DictObject:
         return dictionary
 
 
-
 class Extractor(DictObject):
     __next_id = 0
 
@@ -46,12 +45,11 @@ class Extractor(DictObject):
         return cls.__next_id
 
     def __init__(self, data: dict[Any, Any] | None = None) -> None:
-        default = {
+        super().__init__(data or {
             "id": Extractor.__id(),
             "name": None,
             "selector": None,
-        }
-        super().__init__(data or default)
+        })
 
     def _allowed_attr(self, name: str) -> bool:
         return name in ["id", "name", "selector"]
