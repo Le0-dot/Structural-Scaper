@@ -45,11 +45,15 @@ class Extractor(DictObject):
         return cls.__next_id
 
     def __init__(self, data: dict[Any, Any] | None = None) -> None:
-        super().__init__(data or {
-            "id": Extractor.__id(),
-            "name": None,
-            "selector": None,
-        })
+        if data:
+            Extractor.__next_id = max(data["id"], Extractor.__next_id)
+            super().__init__(data)
+        else:
+            super().__init__({
+                "id": Extractor.__id(),
+                "name": None,
+                "selector": None,
+            })
 
     def _allowed_attr(self, name: str) -> bool:
         return name in ["id", "name", "selector"]
