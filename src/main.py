@@ -1,18 +1,15 @@
-from typing import Any
 from random import randint
 from urllib.parse import unquote
 
-from fastapi import Depends, FastAPI, Request, Response, status
+from fastapi import Body, Depends, FastAPI, Request, Response, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
 from selenium.webdriver.ie.webdriver import WebDriver
 from starlette.middleware.sessions import SessionMiddleware
 
-import parser
 from state import State, Extractor
-from selector import parse_selector
+from selector import parse_selector, build_selector
 from cleaner import get_clean, get_context
 from resources import Templates, Driver
 
@@ -40,7 +37,10 @@ def init(request: Request, url: str, delay: int):
 
 @app.get("/recipe", response_class=HTMLResponse)
 def recipe(request: Request, templates: Jinja2Templates = Depends(Templates.get)):
-    extractors = map(Extractor, State(request).extractors)
+    state = State(request)
+    del state.current_extractor
+
+    extractors = map(Extractor, state.extractors)
     contexts = (e.to_dict(request=request) for e in extractors)
 
     extractor_tempalte = templates.get_template("extractor.html")
@@ -116,29 +116,16 @@ def details(
     )
 
 
-@app.get("/select/next", response_class=RedirectResponse)
-def next(request: Request, selector: str):
+@app.post("/select/details/preview", response_class=HTMLResponse)
+def preview(
+    request: Request,
+    body: dict[str, str | list[str]] = Body(),
+    driver: WebDriver = Depends(Driver.get),
+):
+    selector = build_selector(body)
     state = State(request)
-
     assert state.current_extractor is not None
     state.current_extractor.selector = selector
-    del state.current_extractor
 
-    return str(request.url_for("recipe"))
-
-
-# @app.get("/select/confirm", response_class=HTMLResponse)
-# def confirm(
-#     request: Request,
-#     templates: Jinja2Templates = Depends(Templates.get),
-#     driver: WebDriver = Depends(Driver.get),
-# ):
-#     soup = get_clean(state.get_url(request.session), driver)
-#     selectors = state.get_selectors(request.session)
-#     selectors = dict(enumerate(selectors))
-#     result = parser.select_all(soup, selectors)
-#     return templates.TemplateResponse(
-#         name="confirm.html",
-#         context={"result": result},
-#         request=request,
-#     )
+    bs = get_clean(state.url, driver)
+    return "\n".join(map(str, bs.select(selector)))
