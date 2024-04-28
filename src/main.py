@@ -70,15 +70,12 @@ def current(request: Request, idx: int):
     State(request).current_extractor_id = idx
 
 
-class PutNamePayload(BaseModel):
-    name: str
-
 @app.put("/recipe/extractor/{id}/name", status_code=status.HTTP_204_NO_CONTENT)
-def put_name(request: Request, id: int, data: PutNamePayload):
+def put_name(request: Request, id: int, data: dict[str, str] = Body()):
     extractor = State(request).extractor_by_id(id)
     if extractor is None:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
-    extractor.name = data.name
+    extractor.name = data["name"]
 
 
 @app.delete("/recipe/extractor/{id}", status_code=status.HTTP_200_OK)
