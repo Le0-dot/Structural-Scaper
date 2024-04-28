@@ -1,3 +1,5 @@
+from typing import Any, Iterable
+
 from pydantic import BaseModel
 
 
@@ -33,3 +35,43 @@ def parse_tag_selector(selector: str) -> TagSelector:
 
 def parse_selector(selector: str) -> list[TagSelector]:
     return list(map(parse_tag_selector, selector.split()))
+
+
+def find_by_idx(idx: int, sequence: Iterable[tuple[int, Any]]) -> Any | None:
+    for i, value in sequence:
+        if i == idx:
+            return value
+    return None
+
+
+def join_list(sep: str, value: Any) -> str:
+    if isinstance(value, list):
+        return sep.join(value)
+    return value
+
+
+def sorted_by_first(values: list[tuple[Any, Any]]) -> list[Any]:
+    return list(zip(*sorted(values, key=lambda x: x[0])))[1]
+
+
+def build_selector(parts: dict[str, str | list[str]]) -> str:
+    tags, ids, classes = [], [], []
+    for part in parts:
+        match part.split("-"):
+            case ["tag", idx]:
+                tags.append((int(idx), part))
+            case ["id", idx]:
+                ids.append((int(idx), part))
+            case ["class", idx]:
+                classes.append((int(idx), part))
+
+    selector_parts = []
+    for idx, tag in tags:
+        part = parts[tag]
+        if id_idx := find_by_idx(idx, ids):
+            part += f"#{parts[id_idx]}"
+        if clses_idx := find_by_idx(idx, classes):
+            part += f".{join_list('.', parts[clses_idx])}"
+        selector_parts.append((idx, part))
+
+    return " ".join(sorted_by_first(selector_parts))
