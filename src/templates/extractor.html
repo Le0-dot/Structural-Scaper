@@ -11,17 +11,15 @@
 	/>
     </div>
     <div class="flex flex-row">
-	<label class="flex-none" for="selector">Selector: </label>
-	<div class="flex-auto flex flex-row" id="selector">
-	    <span class="flex-auto">
-		{% if selector is none %}
-		    None
-		{% else %}
-		    {{ selector }}
-		{% endif %}
-	    </span>
-	    <a class="flex-auto" href="{{ url_for('select').include_query_params(id=id) }}">Select</a>
-	</div>
+	<span class="flex-none">Selector: </span>
+	<span class="flex-auto">
+	    {% if selector is none %}
+		None
+	    {% else %}
+		{{ selector }}
+	    {% endif %}
+	</span>
+	<a class="flex-auto" href="{{ url_for('select').include_query_params(id=id) }}">Select</a>
     </div>
     <button
 	hx-delete="{{ url_for('remove', id=id) }}"
