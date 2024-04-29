@@ -1,20 +1,10 @@
-from typing import Any, Callable, Iterator
 from fastapi.templating import Jinja2Templates
-from selenium import webdriver
+from selenium.webdriver import Remote, FirefoxOptions
+from selenium.webdriver.remote.webdriver import WebDriver
 
 
-def resource(factory: Callable[[], Any]):
-    class Resource:
-        __value = None
+def templates(path: str = "templates") -> Jinja2Templates:
+    return Jinja2Templates(path, autoescape=False, auto_reload=True)
 
-        @classmethod
-        def get(cls) -> Iterator[Any]:
-            if cls.__value is None:
-                cls.__value = factory()
-            yield cls.__value
-
-    return Resource
-
-
-Templates = resource(lambda: Jinja2Templates("templates", autoescape=False, auto_reload=True))
-Driver = resource(lambda: webdriver.Firefox())
+def driver(url: str = "http://127.0.0.1:4444") -> WebDriver:
+    return Remote(command_executor=url, options=FirefoxOptions())

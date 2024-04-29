@@ -1,15 +1,15 @@
 # Using BeautifulSoup instead of native selenium search,
 # since need to mutate DOM in memory
 
-from typing import Any
+from typing import Any, ContextManager, Callable
 from urllib.parse import urlparse
 from functools import partial
 from time import sleep
 
 from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup as bs, Tag
-from cachetools.func import ttl_cache
+from cachetools import cached, TTLCache
+from cachetools.keys import hashkey
 
 
 def get_host(url: str) -> str:
@@ -45,20 +45,27 @@ def remove_js(soup: bs) -> None:
         tag.decompose()
 
 
-@ttl_cache(ttl=300)
-def get_clean(url: str, driver: WebDriver, wait_seconds: int = 3) -> bs:
-    driver.get(url)
-    sleep(wait_seconds)
+@cached(
+    cache=TTLCache(maxsize=8, ttl=300),
+    key=lambda url, driver_context, wait_seconds: hashkey(url),
+)
+def get_clean(url: str, driver_context: Callable[[], ContextManager[WebDriver]], wait_seconds: int) -> bs:
+    with driver_context() as driver:
+        driver.get(url)
+        sleep(wait_seconds)
 
-    soup = bs(driver.page_source, "html.parser")
+        soup = bs(driver.page_source, "html.parser")
     remove_js(soup)
 
     return soup
 
 
-@ttl_cache(ttl=300)
-def get_context(url: str, driver: WebDriver) -> dict[str, Any]:
-    soup = get_clean(url, driver)
+@cached(
+    cache=TTLCache(maxsize=8, ttl=300),
+    key=lambda url, driver_context, wait_seconds: hashkey(url),
+)
+def get_context(url: str, driver_context: Callable[[], ContextManager[WebDriver]], wait_seconds: int) -> dict[str, Any]:
+    soup = get_clean(url, driver_context, wait_seconds)
     return {
         "style": soup.find("head style") or "",
         "links": find_css(soup, get_host(url)),
