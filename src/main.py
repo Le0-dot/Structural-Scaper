@@ -21,6 +21,7 @@ app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key="sdfadsfa")  # gen_secret(128))
 
 app.mount("/js", StaticFiles(directory="static/js"), name="js")
+app.mount("/css", StaticFiles(directory="static/css"), name="css")
 
 
 @app.get("/", response_class=HTMLResponse)
