@@ -78,6 +78,14 @@ def put_name(request: Request, id: int, data: dict[str, str] = Body()):
     extractor.name = data["name"]
 
 
+@app.put("/recipe/extractor/{id}/value", status_code=status.HTTP_204_NO_CONTENT)
+def put_value(request: Request, id: int, data: dict[str, str] = Body()):
+    extractor = State(request).extractor_by_id(id)
+    if extractor is None:
+        return Response(status_code=status.HTTP_404_NOT_FOUND)
+    extractor.value = data["value"]
+
+
 @app.delete("/recipe/extractor/{id}", status_code=status.HTTP_200_OK)
 def remove(request: Request, id: int):
     state = State(request)

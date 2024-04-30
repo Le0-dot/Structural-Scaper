@@ -57,10 +57,11 @@ class Extractor(DictObject):
             "id": Extractor.__id(),
             "name": None,
             "selector": None,
+            "value": None,
         }
 
     def _allowed_attr(self, name: str) -> bool:
-        return name in ["id", "name", "selector"]
+        return name in ["id", "name", "selector", "value"]
 
 
 class Template(DictObject):
