@@ -50,3 +50,21 @@
 	{{- caller() if text.caller -}}
     </textarea>
 {% endmacro %}
+
+{% macro select(name, options, selected=None, endpoint=None) %}
+    <select
+	{{ args_to_attrs(kwargs) }}
+	name="{{ name }}"
+	{{ put_on(endpoint, 'load, change') }}
+    >
+	{% for option in options %}
+	    <option
+		{% if option == selected %}
+		    selected="selected"
+		{% endif %}
+	    >
+		{{ option }}
+	    </option>
+	{% endfor %}
+    </select>
+{% endmacro %}
