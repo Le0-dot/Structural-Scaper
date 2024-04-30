@@ -46,7 +46,7 @@ class Extractor(DictObject):
 
     def __init__(self, data: dict[Any, Any] | None = None) -> None:
         if data:
-            Extractor.__next_id = max(data["id"], Extractor.__next_id)
+            Extractor.__next_id = max(int(data["id"]), Extractor.__next_id)
             super().__init__(data)
         else:
             super().__init__({
@@ -59,6 +59,17 @@ class Extractor(DictObject):
         return name in ["id", "name", "selector"]
 
 
+class Template(DictObject):
+    def __init__(self, data: dict[Any, Any] | None = None) -> None:
+        super().__init__(data or {
+            "filename": None,
+            "content": "",
+        })
+
+    def _allowed_attr(self, name: str) -> bool:
+        return name in ["filename", "content"]
+
+
 class State:
     def __init__(self, request: Request) -> None:
         self.__session = request.session
@@ -68,6 +79,7 @@ class State:
         self.delay = delay
         self.extractors = []
         self.current_extractor_id = None
+        self.template = Template()
 
     @property
     def url(self) -> str:
@@ -90,7 +102,7 @@ class State:
         return self.__session["extractors"]
 
     @extractors.setter
-    def extractors(self, values: list[dict[Any, Any]]) -> None:
+    def extractors(self, values: list[Extractor]) -> None:
         self.__session["extractors"] = values
 
     @property
@@ -126,3 +138,11 @@ class State:
         if idx is None:
             return None
         return Extractor(self.extractors[idx])
+
+    @property
+    def template(self) -> Template:
+        return Template(self.__session["template"])
+
+    @template.setter
+    def template(self, value: Template) -> None:
+        self.__session["template"] = value.to_dict()

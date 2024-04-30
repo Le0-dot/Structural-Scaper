@@ -48,7 +48,7 @@ def recipe(request: Request, templates: Jinja2Templates = Depends(templates)):
 
     return templates.TemplateResponse(
         name="recipe.html",
-        context={"extractors": rendered},
+        context={"extractors": rendered, "template": state.template},
         request=request,
     )
 
@@ -85,6 +85,18 @@ def remove(request: Request, id: int):
     if idx is None:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
     del state.extractors[idx]
+
+
+@app.put("/recipe/template/filename", status_code=status.HTTP_204_NO_CONTENT)
+def put_filename(request: Request, data: dict[str, str] = Body()):
+    state = State(request)
+    state.template.filename = data["filename"]
+
+
+@app.put("/recipe/template/content", status_code=status.HTTP_204_NO_CONTENT)
+def put_content(request: Request, data: dict[str, str] = Body()):
+    state = State(request)
+    state.template.content = data["content"]
 
 
 @app.get("/select", response_class=HTMLResponse)
