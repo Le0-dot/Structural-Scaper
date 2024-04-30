@@ -10,7 +10,7 @@
     <body>
 	<form onsubmit="processInput" action="{{ url_for('init') }}" id="form">
 	    <label for="url">URL: </label>
-	    <input type="text" id="url" name="url">
+	    <input type="url" id="url" name="url" required/>
 	    <label for="delay">Delay: </label>
 	    <select name="delay" id="delay">
 		<option value="0">None</option>
