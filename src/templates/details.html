@@ -1,15 +1,4 @@
-{% macro checkbox(name, value, checked=true) %}
-    <div class="checkbox">
-	<input
-	    name="{{ name }}"
-	    value="{{ value }}"
-	    id="{{ name }}"
-	    type="checkbox"
-	    checked="checked"
-	>
-	<label for="{{ name }}">{{ value }}</label>
-    <div>
-{% endmacro %}
+{% from 'utils.html' import checkbox %}
 <html>
     <head>
 	<script src="{{ url_for('js', path='htmx/htmx.min.js') }}"></script>

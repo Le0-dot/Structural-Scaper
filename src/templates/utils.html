@@ -1,0 +1,55 @@
+{% macro args_to_attrs(args) %}
+    {% for key, value in args.items() %}
+	{{ key }}={{ value }}
+    {%- endfor -%}
+{% endmacro %}
+
+{% macro put_on_change(endpoint, delay='500ms') %}
+    {% if endpoint is not none -%}
+	hx-put="{{ endpoint }}"
+	hx-trigger="input changed delay:{{ delay }}"
+	hx-ext="json-enc"
+    {% endif %}
+{% endmacro %}
+
+{% macro checkbox(name, value, checked=true) %}
+    <div {{ args_to_attrs(kwargs) }}>
+	<input
+	    name="{{ name }}"
+	    value="{{ value }}"
+	    id="{{ name }}"
+	    type="checkbox"
+	    checked="checked"
+	>
+	<label for="{{ name }}">{{ value }}</label>
+    <div>
+{% endmacro %}
+
+{% macro input(name, endpoint=None, value=None) %}
+    <div {{ args_to_attrs(kwargs) }}>
+	<label for="{{ name }}">{{ name.capitalize() }}: </label>
+	<input
+	    id="{{ name }}"
+	    name="{{ name }}"
+	    value="{{ value if value is not none }}"
+	    {{ put_on_change(endpoint) }}
+	/>
+    </div>
+{% endmacro %}
+
+{% macro text(name, endpoint=None) %}
+    <div {{ args_to_attrs(kwargs) }}>
+	<p>
+	    <label for="{{ name }}">{{ name.capitalize() }}: </label>
+	</p>
+	<textarea
+	    class="resize-none h-full w-full"
+	    id="{{ name }}"
+	    name="{{ name }}"
+	    placeholder="{{ name.capitalize() }}..."
+	    {{ put_on_change(endpoint, '1s') }}
+	>
+	    {{- caller() if text.caller -}}
+	</textarea>
+    </div>
+{% endmacro %}

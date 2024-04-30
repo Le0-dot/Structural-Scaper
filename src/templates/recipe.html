@@ -1,28 +1,33 @@
+{% from 'utils.html' import input, text %}
 <html>
     <head>
 	<script src="{{ url_for('js', path='htmx/htmx.min.js') }}"></script>
 	<script src="{{ url_for('js', path='htmx/json-enc.js') }}"></script>
-	<script src="{{ url_for('css', path='tailwind.css') }}"></script>
+	<link rel="stylesheet" href="{{ url_for('css', path='tailwind.css') }}">
     </head>
-    <body class="flex">
-	<div>
-	    <h2>Extractors</h2>
+    <body class="flex h-full">
+	<div class="basis-1/2">
+	    <h2 class="text-center">Extractors</h2>
 	    <div id="extractors">
 		{% for extractor in extractors %}
 		    {{ extractor }}
 		{% endfor %}
 	    </div>
-	    <button
-		hx-get="{{ url_for('extractor') }}"
-		hx-trigger="click"
-		hx-target="#extractors"
-		hx-swap="beforeend"
-	    >
-		Add extractor
-	    </button>
+	    <div class="flex justify-center">
+		<button
+		    hx-get="{{ url_for('extractor') }}"
+		    hx-trigger="click"
+		    hx-target="#extractors"
+		    hx-swap="beforeend"
+		>
+		    Add extractor
+		</button>
+	    </div>
 	</div>
-	<div>
-	    <h2>Template</h2>
+	<div class="basis-1/2 flex flex-col">
+	    <h2 class="text-center">Template</h2>
+	    {{ input('filename') }}
+	    {% call text('content', class='grow') %}Test text here{% endcall %}
 	</div>
     </body>
 </html>

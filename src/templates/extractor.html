@@ -1,25 +1,16 @@
+{% from 'utils.html' import input %}
 <div id="extractor" class="flex-col">
-    <div>
-	<label for="name">Name: </label>
-	<input
-	    id="name"
-	    name="name"
-	    value="{{ name if name is not none }}"
-	    hx-put="{{ url_for('put_name', id=id) }}"
-	    hx-trigger="input changed delay:500ms"
-	    hx-ext="json-enc"
-	/>
-    </div>
+    {{ input('name', url_for('put_name', id=id), name) }}
     <div class="flex flex-row">
 	<span class="flex-none">Selector: </span>
-	<span class="flex-auto">
+	<span class="grow">
 	    {% if selector is none %}
 		None
 	    {% else %}
 		{{ selector }}
 	    {% endif %}
 	</span>
-	<a class="flex-auto" href="{{ url_for('select').include_query_params(id=id) }}">Select</a>
+	<a class="flex-none" href="{{ url_for('select').include_query_params(id=id) }}">Select</a>
     </div>
     <button
 	hx-delete="{{ url_for('remove', id=id) }}"
