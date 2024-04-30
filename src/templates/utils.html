@@ -21,7 +21,9 @@
 	    value="{{ value }}"
 	    id="{{ name }}"
 	    type="checkbox"
-	    checked="checked"
+	    {% if checked %}
+		checked="checked"
+	    {% endif %}
 	>
 	<label for="{{ name }}">{{ value }}</label>
     <div>
