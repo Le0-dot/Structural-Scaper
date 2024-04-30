@@ -60,7 +60,7 @@ def extractor(request: Request, templates: Jinja2Templates = Depends(templates))
     extractors.append(extractor.data)
     return templates.TemplateResponse(
         name="extractor.html",
-        context={"id": extractor.id},
+        context=extractor.to_dict(),
         request=request,
     )
 
