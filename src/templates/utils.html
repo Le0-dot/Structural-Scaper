@@ -55,8 +55,9 @@
     <select
 	{{ args_to_attrs(kwargs) }}
 	name="{{ name }}"
-	{{ put_on(endpoint, 'load, change') }}
+	{{ put_on(endpoint, 'change') }}
     >
+	<option>--Select--</option>
 	{% for option in options %}
 	    <option
 		{% if option == selected %}
