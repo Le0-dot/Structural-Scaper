@@ -5,10 +5,13 @@ from fastapi import Request
 
 class DictObject:
     def __init__(self, data: dict[Any, Any] | None = None) -> None:
-        super().__setattr__("data", data or {})
+        super().__setattr__("data", data or self._default())
 
     def _allowed_attr(self, name: str) -> bool:
         return True
+
+    def _default(self):
+        return {}
 
     def __getattr__(self, name: str) -> Any:
         if name == "data":
@@ -47,24 +50,25 @@ class Extractor(DictObject):
     def __init__(self, data: dict[Any, Any] | None = None) -> None:
         if data:
             Extractor.__next_id = max(int(data["id"]), Extractor.__next_id)
-            super().__init__(data)
-        else:
-            super().__init__({
-                "id": Extractor.__id(),
-                "name": None,
-                "selector": None,
-            })
+        super().__init__(data)
+
+    def _default(self):
+        return {
+            "id": Extractor.__id(),
+            "name": None,
+            "selector": None,
+        }
 
     def _allowed_attr(self, name: str) -> bool:
         return name in ["id", "name", "selector"]
 
 
 class Template(DictObject):
-    def __init__(self, data: dict[Any, Any] | None = None) -> None:
-        super().__init__(data or {
+    def _default(self):
+        return {
             "filename": None,
             "content": "",
-        })
+        }
 
     def _allowed_attr(self, name: str) -> bool:
         return name in ["filename", "content"]
