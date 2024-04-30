@@ -9,7 +9,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from state import State, Extractor
 from selector import parse_selector, build_selector
-from cleaner import get_clean, get_context
+from cleaner import get_clean, get_context, get_value
 from resources import templates, driver
 
 
@@ -154,4 +154,4 @@ def preview(
     state.current_extractor.selector = selector
 
     bs = get_clean(state.url, driver, state.delay)
-    return "\n".join(tag.text for tag in bs.select(selector))
+    return "\n".join(get_value(tag, state.current_extractor.value) for tag in bs.select(selector))

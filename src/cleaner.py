@@ -45,6 +45,21 @@ def remove_js(soup: bs) -> None:
         tag.decompose()
 
 
+def get_value(tag: Tag, value: str) -> str:
+    match value:
+        case "text":
+            return tag.text
+        case "href" if tag.has_attr("href"):
+            return str(tag["href"])
+        case "href":
+            return tag.text
+        case "innerHTML":
+            return tag.decode_contents()
+        case "outerHTML":
+            return str(tag)
+    raise Exception("Invalid value parameter")
+
+
 @cached(
     cache=TTLCache(maxsize=8, ttl=300),
     key=lambda url, driver_context, wait_seconds: hashkey(url),
