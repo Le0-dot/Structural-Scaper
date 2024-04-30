@@ -4,10 +4,12 @@
     {%- endfor -%}
 {% endmacro %}
 
-{% macro put_on_change(endpoint, delay='500ms') %}
+{% macro put_on(endpoint, trigger=None, delay=None) %}
     {% if endpoint is not none -%}
 	hx-put="{{ endpoint }}"
-	hx-trigger="input changed delay:{{ delay }}"
+	{% if trigger is not none %}
+	    hx-trigger="{{ trigger }} delay:{{ delay if delay is not none else '0s' }}"
+	{% endif %}
 	hx-ext="json-enc"
     {% endif %}
 {% endmacro %}
@@ -32,7 +34,7 @@
 	name="{{ name }}"
 	value="{{ value if value is not none }}"
 	placeholder="{{ name.capitalize() }}..."
-	{{ put_on_change(endpoint) }}
+	{{ put_on(endpoint, 'input changed', '500ms') }}
     />
 {% endmacro %}
 
@@ -43,7 +45,7 @@
 	id="{{ name }}"
 	name="{{ name }}"
 	placeholder="{{ name.capitalize() }}..."
-	{{ put_on_change(endpoint, '1s') }}
+	{{ put_on(endpoint, 'input changed', '1s') }}
     >
 	{{- caller() if text.caller -}}
     </textarea>
