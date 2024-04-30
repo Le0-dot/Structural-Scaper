@@ -130,9 +130,7 @@ def put_selector(request: Request, data: str = Body()):
 
 
 @app.get("/select/details", response_class=HTMLResponse)
-def details(
-    request: Request, templates: Jinja2Templates = Depends(templates)
-):
+def details(request: Request, templates: Jinja2Templates = Depends(templates)):
     state = State(request)
     assert state.current_extractor is not None
     selectors = parse_selector(state.current_extractor.selector)
@@ -154,4 +152,6 @@ def preview(
     state.current_extractor.selector = selector
 
     bs = get_clean(state.url, driver, state.delay)
-    return "\n".join(get_value(tag, state.current_extractor.value) for tag in bs.select(selector))
+    return "\n".join(
+        get_value(tag, state.current_extractor.value) for tag in bs.select(selector)
+    )

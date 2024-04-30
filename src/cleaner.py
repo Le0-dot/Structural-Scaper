@@ -64,7 +64,9 @@ def get_value(tag: Tag, value: str) -> str:
     cache=TTLCache(maxsize=8, ttl=300),
     key=lambda url, driver_context, wait_seconds: hashkey(url),
 )
-def get_clean(url: str, driver_context: Callable[[], ContextManager[WebDriver]], wait_seconds: int) -> bs:
+def get_clean(
+    url: str, driver_context: Callable[[], ContextManager[WebDriver]], wait_seconds: int
+) -> bs:
     with driver_context() as driver:
         driver.get(url)
         sleep(wait_seconds)
@@ -79,7 +81,9 @@ def get_clean(url: str, driver_context: Callable[[], ContextManager[WebDriver]],
     cache=TTLCache(maxsize=8, ttl=300),
     key=lambda url, driver_context, wait_seconds: hashkey(url),
 )
-def get_context(url: str, driver_context: Callable[[], ContextManager[WebDriver]], wait_seconds: int) -> dict[str, Any]:
+def get_context(
+    url: str, driver_context: Callable[[], ContextManager[WebDriver]], wait_seconds: int
+) -> dict[str, Any]:
     soup = get_clean(url, driver_context, wait_seconds)
     return {
         "style": soup.find("head style") or "",
