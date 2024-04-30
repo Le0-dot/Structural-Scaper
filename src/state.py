@@ -14,8 +14,6 @@ class DictObject:
         return {}
 
     def __getattr__(self, name: str) -> Any:
-        if name == "data":
-            return super().__getattribute__("data")
         if not self._allowed_attr(name):
             raise AttributeError(f"No attribute {name} found in class {self.__class__}")
         try:
@@ -26,15 +24,15 @@ class DictObject:
     def __setattr__(self, name: str, value: Any) -> None:
         if not self._allowed_attr(name):
             raise AttributeError(f"No attribute {name} found in class {self.__class__}")
-        self.data[name] = value
+        self.__getattribute__("data")[name] = value
 
     def __delattr__(self, name: str) -> None:
         if not self._allowed_attr(name):
             raise AttributeError(f"No attribute {name} found in class {self.__class__}")
-        del self.data[name]
+        del self.__getattribute__("data")[name]
 
     def to_dict(self, **kwargs) -> dict[str, Any]:
-        dictionary = {k: v for k, v in self.data.items() if self._allowed_attr(k)}
+        dictionary = {k: v for k, v in self.__getattribute__("data").items() if self._allowed_attr(k)}
         dictionary.update(kwargs)
         return dictionary
 
