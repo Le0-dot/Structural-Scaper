@@ -1,4 +1,4 @@
-{% from 'utils.html' import input %}
+{% from 'utils.html' import input, select %}
 <div id="extractor" class="flex-col">
     {{ input('name', url_for('put_name', id=id), name) }}
     <div class="flex flex-row">
@@ -10,6 +10,11 @@
 		{{ selector }}
 	    {% endif %}
 	</span>
+	{% set options = ['text', 'innerHTML', 'outerHTML'] %}
+	{% if selector is not none and selector.split()[-1].startswith('a') %}
+	    {% set options = ['href', 'text', 'innerHTML', 'outerHTML'] %}
+	{% endif %}
+	{{ select('value', options, value, url_for('put_value', id=id)) }}
 	<a class="flex-none" href="{{ url_for('select').include_query_params(id=id) }}">Select</a>
     </div>
     <button
