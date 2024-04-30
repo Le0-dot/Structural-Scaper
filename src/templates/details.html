@@ -32,7 +32,7 @@
 		    <td class="grow flex flex-col">
 		    {% set outer_loop = loop %}
 		    {% for class in selector.classes %}
-			{{ checkbox("class-{}".format(outer_loop.index), class) }}
+			{{ checkbox("class-{}".format(outer_loop.index), class, false) }}
 		    {% endfor %}
 		    </td>
 		</tr>
