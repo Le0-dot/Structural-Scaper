@@ -59,7 +59,7 @@
 	name="{{ name }}"
 	{{ put_on(endpoint, 'change') }}
     >
-	<option>--Select--</option>
+	<option class="hidden" value>None</option>
 	{% for option in options %}
 	    <option
 		{% if option == selected %}
