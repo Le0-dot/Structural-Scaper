@@ -26,30 +26,25 @@
 {% endmacro %}
 
 {% macro input(name, endpoint=None, value=None) %}
-    <div {{ args_to_attrs(kwargs) }}>
-	<label for="{{ name }}">{{ name.capitalize() }}: </label>
-	<input
-	    id="{{ name }}"
-	    name="{{ name }}"
-	    value="{{ value if value is not none }}"
-	    {{ put_on_change(endpoint) }}
-	/>
-    </div>
+    <input
+	{{ args_to_attrs(kwargs) }}
+	id="{{ name }}"
+	name="{{ name }}"
+	value="{{ value if value is not none }}"
+	placeholder="{{ name.capitalize() }}..."
+	{{ put_on_change(endpoint) }}
+    />
 {% endmacro %}
 
 {% macro text(name, endpoint=None) %}
-    <div {{ args_to_attrs(kwargs) }}>
-	<p>
-	    <label for="{{ name }}">{{ name.capitalize() }}: </label>
-	</p>
-	<textarea
-	    class="resize-none h-full w-full"
-	    id="{{ name }}"
-	    name="{{ name }}"
-	    placeholder="{{ name.capitalize() }}..."
-	    {{ put_on_change(endpoint, '1s') }}
-	>
-	    {{- caller() if text.caller -}}
-	</textarea>
-    </div>
+    <textarea
+	class="resize-none {{ kwargs['class'] }}"
+	{{ args_to_attrs(kwargs) }}
+	id="{{ name }}"
+	name="{{ name }}"
+	placeholder="{{ name.capitalize() }}..."
+	{{ put_on_change(endpoint, '1s') }}
+    >
+	{{- caller() if text.caller -}}
+    </textarea>
 {% endmacro %}
