@@ -61,6 +61,21 @@ class Extractor(DictObject):
     def _allowed_attr(self, name: str) -> bool:
         return name in ["id", "name", "selector", "value"]
 
+    def valid_value(self) -> bool:
+        anchor = self.selector.split()[-1].startswith('a')
+        values = ["text", "innerHTML", "outerHTML"]
+        if self.value in values or (anchor and self.value == "href"):
+            return True
+        return False
+
+
+    def guess_value(self) -> str:
+        anchor = self.selector.split()[-1].startswith('a')
+        if anchor:
+            return "href"
+        else:
+            return "text"
+
 
 class Template(DictObject):
     def _default(self):

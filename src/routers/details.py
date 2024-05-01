@@ -33,7 +33,11 @@ def preview(
     assert state.current_extractor is not None
     state.current_extractor.selector = selector
 
+    extractor = state.current_extractor
+    if not extractor.valid_value():
+        extractor.value = extractor.guess_value()
+
     bs = get_clean(state.url, driver, state.delay)
     return "\n".join(
-        get_value(tag, state.current_extractor.value) for tag in bs.select(selector)
+        get_value(tag, extractor.value) for tag in bs.select(selector)
     )
