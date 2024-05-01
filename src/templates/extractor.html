@@ -1,6 +1,17 @@
 {% from 'utils.html' import input, select %}
 <div id="extractor" class="flex-col">
-    {{ input('name', url_for('put_name', id=id), name) }}
+    <div class="flex">
+	{{ input(
+		'name',
+		url_for('put_name', id=id),
+		name,
+		'span#content-message',
+		'innerHTML',
+		class="grow",
+		onkeypress='"return event.charCode != 32"'
+	   )
+	}}
+    </div>
     <div class="flex flex-row">
 	<span class="flex-none">Selector: </span>
 	<span class="grow">

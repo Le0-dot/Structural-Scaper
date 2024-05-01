@@ -27,9 +27,10 @@
 	<div class="basis-1/2 flex flex-col">
 	    <h2 class="text-center">Template</h2>
 	    {{ input('filename', url_for('put_filename'), template.filename) }}
-	    {% call text('content', url_for('put_content'), class='grow') %}
+	    {% call text('content', url_for('put_content'), 'span#content-message', 'innerHTML', class='grow') %}
 		{{- template.content -}}
 	    {% endcall %}
+	    <span id="content-message"></span>
 	</div>
     </body>
 </html>

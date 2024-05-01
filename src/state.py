@@ -66,3 +66,11 @@ class State(BaseModel):
         if extractor.id in self.extractors.keys():
             raise ValueError("trying to append already existing extractor")
         self.extractors[extractor.id] = extractor
+
+    @property
+    def names(self) -> set[str]:
+        return {
+            extractor.name
+            for extractor in self.extractors.values()
+            if extractor.name is not None
+        }
