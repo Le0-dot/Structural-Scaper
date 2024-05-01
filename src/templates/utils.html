@@ -4,11 +4,17 @@
     {%- endfor -%}
 {% endmacro %}
 
-{% macro put_on(endpoint, trigger=None, delay=None) %}
+{% macro put_on(endpoint, trigger=None, delay=None, target=None, swap=None) %}
     {% if endpoint is not none -%}
 	hx-put="{{ endpoint }}"
 	{% if trigger is not none %}
 	    hx-trigger="{{ trigger }} delay:{{ delay if delay is not none else '0s' }}"
+	{% endif %}
+	{% if target is not none %}
+	    hx-target="{{ target }}"
+	{% endif %}
+	{% if swap is not none %}
+	    hx-swap="{{ swap }}"
 	{% endif %}
 	hx-ext="json-enc"
     {% endif %}
@@ -29,25 +35,25 @@
     <div>
 {% endmacro %}
 
-{% macro input(name, endpoint=None, value=None) %}
+{% macro input(name, endpoint=None, value=None, target=None, swap=None) %}
     <input
 	{{ args_to_attrs(kwargs) }}
 	id="{{ name }}"
 	name="{{ name }}"
 	value="{{ value if value is not none }}"
 	placeholder="{{ name.capitalize() }}..."
-	{{ put_on(endpoint, 'input changed', '500ms') }}
+	{{ put_on(endpoint, 'input changed', '500ms', target, swap) }}
     />
 {% endmacro %}
 
-{% macro text(name, endpoint=None) %}
+{% macro text(name, endpoint=None, target=None, swap=None) %}
     <textarea
 	class="resize-none {{ kwargs['class'] }}"
 	{{ args_to_attrs(kwargs) }}
 	id="{{ name }}"
 	name="{{ name }}"
 	placeholder="{{ name.capitalize() }}..."
-	{{ put_on(endpoint, 'input changed', '1s') }}
+	{{ put_on(endpoint, 'input changed', '1s', target, swap) }}
     >
 	{{- caller() if text.caller -}}
     </textarea>
