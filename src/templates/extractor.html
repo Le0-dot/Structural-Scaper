@@ -28,6 +28,10 @@
 	{{ select('value', options, value, url_for('put_value', id=id)) }}
 	<a class="flex-none" href="{{ url_for('select').include_query_params(id=id) }}">Select</a>
     </div>
+    <div class="flex">
+	{{ input('regex', url_for('put_regex', id=id), regex, 'next span#regex-preview', 'innerHTML', class='grow') }}
+	<span id="regex-preview"></span>
+    </div>
     <button
 	hx-delete="{{ url_for('remove', id=id) }}"
 	hx-trigger="click"
