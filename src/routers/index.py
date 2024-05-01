@@ -4,8 +4,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from state import State
-from resources import templates
+from resources import init_state, templates
 
 
 router = APIRouter()
@@ -18,5 +17,5 @@ def index(request: Request, templates: Jinja2Templates = Depends(templates)):
 
 @router.get("/init", response_class=RedirectResponse)
 def init(request: Request, url: str, delay: int):
-    State(request).init(unquote(url), delay)
+    init_state(request, unquote(url), delay)
     return str(request.url_for("recipe"))

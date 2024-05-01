@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Body, status
 from fastapi.responses import Response
 
-from state import State
+from resources import state_context
 
 
 router = APIRouter(
@@ -11,11 +11,11 @@ router = APIRouter(
 
 @router.put("/filename", status_code=status.HTTP_204_NO_CONTENT)
 def put_filename(request: Request, data: dict[str, str] = Body()):
-    state = State(request)
-    state.template.filename = data["filename"]
+    with state_context(request) as state:
+        state.template.filename = data["filename"]
 
 
 @router.put("/content", status_code=status.HTTP_204_NO_CONTENT)
 def put_content(request: Request, data: dict[str, str] = Body()):
-    state = State(request)
-    state.template.content = data["content"]
+    with state_context(request) as state:
+        state.template.content = data["content"]

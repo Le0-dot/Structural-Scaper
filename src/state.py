@@ -1,166 +1,68 @@
-from typing import Any
+from random import randint
+from enum import StrEnum
 
-from fastapi import Request
-
-
-class DictObject:
-    def __init__(self, data: dict[Any, Any] | None = None) -> None:
-        super().__setattr__("data", data or self._default())
-
-    def _allowed_attr(self, name: str) -> bool:
-        return True
-
-    def _default(self):
-        return {}
-
-    def __getattr__(self, name: str) -> Any:
-        if not self._allowed_attr(name):
-            raise AttributeError(f"No attribute {name} found in class {self.__class__}")
-        try:
-            return super().__getattribute__("data")[name]
-        except KeyError:
-            raise AttributeError(f"No attribute {name} found in class {self.__class__}")
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        if not self._allowed_attr(name):
-            raise AttributeError(f"No attribute {name} found in class {self.__class__}")
-        self.__getattribute__("data")[name] = value
-
-    def __delattr__(self, name: str) -> None:
-        if not self._allowed_attr(name):
-            raise AttributeError(f"No attribute {name} found in class {self.__class__}")
-        del self.__getattribute__("data")[name]
-
-    def to_dict(self, **kwargs) -> dict[str, Any]:
-        dictionary = {k: v for k, v in self.__getattribute__("data").items() if self._allowed_attr(k)}
-        dictionary.update(kwargs)
-        return dictionary
+from pydantic import BaseModel, Field, computed_field, model_validator
 
 
-class Extractor(DictObject):
-    __next_id = 0
-
-    @classmethod
-    def __id(cls) -> int:
-        cls.__next_id += 1
-        return cls.__next_id
-
-    def __init__(self, data: dict[Any, Any] | None = None) -> None:
-        if data:
-            Extractor.__next_id = max(int(data["id"]), Extractor.__next_id)
-        super().__init__(data)
-
-    def _default(self):
-        return {
-            "id": Extractor.__id(),
-            "name": None,
-            "selector": None,
-            "value": None,
-        }
-
-    def _allowed_attr(self, name: str) -> bool:
-        return name in ["id", "name", "selector", "value"]
-
-    def valid_value(self) -> bool:
-        anchor = self.selector.split()[-1].startswith('a')
-        values = ["text", "innerHTML", "outerHTML"]
-        if self.value in values or (anchor and self.value == "href"):
-            return True
-        return False
+class ValueType(StrEnum):
+    href = "href"
+    text = "text"
+    innerHTML = "innerHTML"
+    outerHTML = "outerHTML"
 
 
-    def guess_value(self) -> str:
-        anchor = self.selector.split()[-1].startswith('a')
-        if anchor:
-            return "href"
+class Extractor(BaseModel):
+    id: int = Field(
+        default_factory=lambda: randint(0, 2**32 - 1)
+    )  # random id, so that we do not need to keep incrementing value around
+    name: str | None = None
+    selector: str | None = None
+    value: ValueType | None = None
+
+    @model_validator(mode="after")
+    def valid_value(self) -> "Extractor":
+        if not self.anchor_selector and self.value == ValueType.href:
+            self.value = self.guess_value()
+        return self
+
+    @computed_field
+    @property
+    def anchor_selector(self) -> bool:
+        if self.selector is None:
+            return False
+        return self.selector.split()[-1].startswith("a")
+
+    def guess_value(self) -> ValueType:
+        if self.anchor_selector:
+            return ValueType.href
         else:
-            return "text"
+            return ValueType.text
 
 
-class Template(DictObject):
-    def _default(self):
-        return {
-            "filename": None,
-            "content": "",
-        }
-
-    def _allowed_attr(self, name: str) -> bool:
-        return name in ["filename", "content"]
+class Template(BaseModel):
+    filename: str | None = None
+    content: str = ""
 
 
-class State:
-    def __init__(self, request: Request) -> None:
-        self.__session = request.session
-
-    def init(self, url: str, delay: int) -> None:
-        self.url = url
-        self.delay = delay
-        self.extractors = []
-        self.current_extractor_id = None
-        self.template = Template()
-
-    @property
-    def url(self) -> str:
-        return self.__session["url"]
-
-    @url.setter
-    def url(self, value: str) -> None:
-        self.__session["url"] = value
-
-    @property
-    def delay(self) -> int:
-        return self.__session["delay"]
-
-    @delay.setter
-    def delay(self, value: int) -> None:
-        self.__session["delay"] = value
-
-    @property
-    def extractors(self) -> list[dict[Any, Any]]:
-        return self.__session["extractors"]
-
-    @extractors.setter
-    def extractors(self, values: list[Extractor]) -> None:
-        self.__session["extractors"] = values
-
-    @property
-    def current_extractor_id(self) -> int | None:
-        return self.__session["current_extractor_id"]
-
-    @current_extractor_id.setter
-    def current_extractor_id(self, value: int | None) -> None:
-        self.__session["current_extractor_id"] = value
-
-    @current_extractor_id.deleter
-    def current_extractor_id(self) -> None:
-        self.__session["current_extractor_id"] = None
+class State(BaseModel):
+    url: str
+    delay: int
+    extractors: dict[int, Extractor] = {}
+    current_extractor_id: int | None = None
+    current_selector: str | None = None
+    template: Template = Template()
 
     @property
     def current_extractor(self) -> Extractor | None:
         if self.current_extractor_id is None:
             return None
-        return self.extractor_by_id(self.current_extractor_id)
+        return self.extractors[self.current_extractor_id]
 
     @current_extractor.deleter
     def current_extractor(self) -> None:
-        del self.current_extractor_id
+        self.current_extractor_id = None
 
-    def extractor_idx_by_id(self, id: int) -> int | None:
-        for idx, value in enumerate(self.extractors):
-            if value["id"] == id:
-                return idx
-        return None
-
-    def extractor_by_id(self, id: int) -> Extractor | None:
-        idx = self.extractor_idx_by_id(id)
-        if idx is None:
-            return None
-        return Extractor(self.extractors[idx])
-
-    @property
-    def template(self) -> Template:
-        return Template(self.__session["template"])
-
-    @template.setter
-    def template(self, value: Template) -> None:
-        self.__session["template"] = value.to_dict()
+    def append_extractor(self, extractor: Extractor) -> None:
+        if extractor.id in self.extractors.keys():
+            raise ValueError("trying to append already existing extractor")
+        self.extractors[extractor.id] = extractor

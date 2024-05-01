@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Body, Depends, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from state import State
 from selector import parse_selector, build_selector
 from cleaner import get_clean, get_value
-from resources import templates, driver
+from resources import state_context, templates, driver
+from state import ValueType
 
 
 router = APIRouter(default_response_class=HTMLResponse)
@@ -13,9 +13,14 @@ router = APIRouter(default_response_class=HTMLResponse)
 
 @router.get("/")
 def details(request: Request, templates: Jinja2Templates = Depends(templates)):
-    state = State(request)
-    assert state.current_extractor is not None
-    selectors = parse_selector(state.current_extractor.selector)
+    with state_context(request) as state:
+        if state.current_extractor is None:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST, "current extractor is None"
+            )
+        if state.current_extractor.selector is None:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "current selector is None")
+        selectors = parse_selector(state.current_extractor.selector)
     return templates.TemplateResponse(
         name="details.html",
         context={"selectors": selectors},
@@ -29,15 +34,14 @@ def preview(
     body: dict[str, str | list[str]] = Body(),
 ):
     selector = build_selector(body)
-    state = State(request)
-    assert state.current_extractor is not None
-    state.current_extractor.selector = selector
+    with state_context(request) as state:
+        assert state.current_extractor is not None
+        state.current_extractor.selector = selector
 
-    extractor = state.current_extractor
-    if not extractor.valid_value():
-        extractor.value = extractor.guess_value()
+        extractor = state.current_extractor
+        if extractor.value is None or extractor.value == ValueType.text:
+            extractor.value = extractor.guess_value()
 
-    bs = get_clean(state.url, driver, state.delay)
-    return "\n".join(
-        get_value(tag, extractor.value) for tag in bs.select(selector)
-    )
+        bs = get_clean(state.url, driver, state.delay)
+
+    return "\n".join(get_value(tag, extractor.value) for tag in bs.select(selector))
