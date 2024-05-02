@@ -45,19 +45,6 @@ def put_value(request: Request, id: int, data: dict[str, str] = Body()):
         extractor.value = ValueType(data["value"])
 
 
-@router.put("/{id}/regex")
-def put_regex(request: Request, id: int, data: dict[str, str] = Body()):
-    with state_context(request) as state:
-        extractor = state.extractors[id]
-        if extractor is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-        extractor.regex = data["regex"]
-        # TODO: Check validity of regex
-        # TODO: Return regex result or show that it is invalid
-
-        return "TEST REGEX"
-
-
 @router.delete("/{id}", status_code=status.HTTP_200_OK)
 def remove(request: Request, id: int):
     with state_context(request) as state:

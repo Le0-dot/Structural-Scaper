@@ -18,7 +18,6 @@ class Extractor(BaseModel):
     name: str | None = None
     selector: str | None = None
     value: ValueType | None = None
-    regex: str | None = None
 
     @model_validator(mode="after")
     def valid_value(self) -> "Extractor":
