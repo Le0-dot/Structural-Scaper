@@ -3,11 +3,10 @@
     <div class="flex">
 	{{ input(
 		'name',
-		url_for('put_name', id=id),
 		name,
-		'span#content-message',
-		'innerHTML',
-		class="grow",
+		url_for('put_name', id=id),
+		'input changed delay:500ms',
+		class='"extractor-name grow"',
 		onkeypress='"return event.charCode != 32"'
 	   )
 	}}

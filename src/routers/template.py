@@ -1,22 +1,23 @@
-from fastapi import APIRouter, Request, Body, status
-from fastapi.responses import HTMLResponse, Response
+from fastapi import APIRouter, Request, Body
+from fastapi.responses import HTMLResponse
 
 from resources import state_context
 from jinja_validation import validate
 
 
 router = APIRouter(
-    default_response_class=Response,
+    default_response_class=HTMLResponse,
 )
 
 
-@router.put("/filename", status_code=status.HTTP_204_NO_CONTENT)
+@router.put("/filename")
 def put_filename(request: Request, data: dict[str, str] = Body()):
     with state_context(request) as state:
         state.template.filename = data["filename"]
+        return validate(state.template.filename, state.names)
 
 
-@router.put("/content", response_class=HTMLResponse)
+@router.put("/content")
 def put_content(request: Request, data: dict[str, str] = Body()):
     with state_context(request) as state:
         state.template.content = data["content"]

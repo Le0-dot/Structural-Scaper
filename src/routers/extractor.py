@@ -1,19 +1,17 @@
-from fastapi import APIRouter, Request, Body, HTTPException, Depends, status
+from fastapi import APIRouter, Request, Body, HTTPException, Depends, Response, status
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from state import Extractor, ValueType
 from resources import state_context, templates
 
-from jinja_validation import validate
-
 
 router = APIRouter(
-    default_response_class=HTMLResponse,
+    default_response_class=Response,
 )
 
 
-@router.get("/")
+@router.get("/", response_class=HTMLResponse)
 def extractor(request: Request, templates: Jinja2Templates = Depends(templates)):
     with state_context(request) as state:
         extractor = Extractor()
@@ -25,15 +23,13 @@ def extractor(request: Request, templates: Jinja2Templates = Depends(templates))
         )
 
 
-@router.put("/{id}/name")
+@router.put("/{id}/name", status_code=status.HTTP_200_OK)
 def put_name(request: Request, id: int, data: dict[str, str] = Body()):
     with state_context(request) as state:
         extractor = state.extractors[id]
         if extractor is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
         extractor.name = data["name"]
-
-        return validate(state.template.content, state.names)
 
 
 @router.put("/{id}/value", status_code=status.HTTP_204_NO_CONTENT)

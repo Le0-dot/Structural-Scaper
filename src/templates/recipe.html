@@ -26,8 +26,28 @@
 	</div>
 	<div class="basis-1/2 flex flex-col">
 	    <h2 class="text-center">Template</h2>
-	    {{ input('filename', url_for('put_filename'), template.filename) }}
-	    {% call text('content', url_for('put_content'), 'span#content-message', 'innerHTML', class='grow') %}
+	    <div class="flex">
+		{{ input(
+			'filename',
+			template.filename,
+			url_for('put_filename'),
+			'input changed delay:500ms, input changed from:input.extractor-name delay:500ms',
+			'span#filename-message',
+			'innerHTML',
+			class='grow'
+		   )
+		}}
+		<span id="filename-message"></span>
+	    </div>
+	    {% call text(
+			'content',
+			url_for('put_content'),
+			'input changed delay:1s, input changed from:input.extractor-name delay:500ms',
+			'span#content-message',
+			'innerHTML',
+			class='grow'
+		    )
+	    %}
 		{{- template.content -}}
 	    {% endcall %}
 	    <span id="content-message"></span>
