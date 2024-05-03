@@ -1,23 +1,7 @@
 {% macro args_to_attrs(args) %}
     {% for key, value in args.items() %}
-	{{ key }}={{ value }}
+	{{ key }}="{{ value }}"
     {%- endfor -%}
-{% endmacro %}
-
-{% macro put_on(endpoint, trigger=None, target=None, swap=None) %}
-    {% if endpoint is not none -%}
-	hx-put="{{ endpoint }}"
-	{% if trigger is not none %}
-	    hx-trigger="{{ trigger }}"
-	{% endif %}
-	{% if target is not none %}
-	    hx-target="{{ target }}"
-	{% endif %}
-	{% if swap is not none %}
-	    hx-swap="{{ swap }}"
-	{% endif %}
-	hx-ext="json-enc"
-    {% endif %}
 {% endmacro %}
 
 {% macro checkbox(name, value, checked=true) %}
@@ -35,35 +19,51 @@
     <div>
 {% endmacro %}
 
-{% macro input(name, value=None, endpoint=None, trigger=None, target=None, swap=None) %}
+{% macro input(name, value, endpoint, trigger=None) %}
     <input
 	{{ args_to_attrs(kwargs) }}
 	id="{{ name }}"
 	name="{{ name }}"
-	value="{{ value if value is not none }}"
+	value="{{ value }}"
 	placeholder="{{ name.capitalize() }}..."
-	{{ put_on(endpoint, trigger, target, swap) }}
+	hx-put="{{ endpoint }}"
+	{% if trigger is not none %}
+	    hx-trigger="{{ trigger }}"
+	{% endif %}
+	hx-target="span#{{ name }}-message"
+	hx-swap="innerHTML"
+	hx-ext="json-enc"
     />
+    <span id="{{ name }}-message"></span>
 {% endmacro %}
 
-{% macro text(name, endpoint=None, trigger=None, target=None, swap=None) %}
+{% macro text(name, endpoint, trigger=None) %}
     <textarea
 	class="resize-none {{ kwargs['class'] }}"
 	{{ args_to_attrs(kwargs) }}
 	id="{{ name }}"
 	name="{{ name }}"
+	value="{{ value }}"
 	placeholder="{{ name.capitalize() }}..."
-	{{ put_on(endpoint, trigger, target, swap) }}
+	hx-put="{{ endpoint }}"
+	{% if trigger is not none %}
+	    hx-trigger="{{ trigger }}"
+	{% endif %}
+	hx-target="span#{{ name }}-message"
+	hx-swap="innerHTML"
+	hx-ext="json-enc"
     >
 	{{- caller() if text.caller -}}
     </textarea>
+    <span id="{{ name }}-message"></span>
 {% endmacro %}
 
-{% macro select(name, options, selected=None, endpoint=None) %}
+{% macro select(name, options, selected, endpoint) %}
     <select
 	{{ args_to_attrs(kwargs) }}
 	name="{{ name }}"
-	{{ put_on(endpoint, 'change') }}
+	hx-put="{{ endpoint }}"
+	hx-ext="json-enc"
     >
 	<option class="hidden" value>None</option>
 	{% for option in options %}

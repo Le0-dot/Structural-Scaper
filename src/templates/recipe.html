@@ -29,44 +29,41 @@
 		<h2 class="text-center">Template</h2>
 		<div class="flex">
 		    {{ input(
-			    'filename',
+			    "filename",
 			    template.filename,
-			    url_for('put_filename'),
-			    'input changed delay:500ms, input changed from:input.extractor-name delay:500ms',
-			    'span#filename-message',
-			    'innerHTML',
-			    class='grow'
+			    url_for("put_filename"),
+			    "input changed delay:500ms",
+			    class="grow",
 		       )
 		    }}
-		    <span id="filename-message"></span>
 		</div>
 		<div class="flex">
 		    {{ input(
-			    'next',
+			    "next",
 			    template.next,
-			    url_for('put_next'),
-			    'input changed delay:500ms, input changed from:input.extractor-name delay:500ms',
-			    'span#next-message',
-			    'innerHTML',
-			    class='grow'
+			    url_for("put_next"),
+			    "input changed delay:500ms",
+			    class="grow",
 		       )
 		    }}
-		    <span id="next-message"></span>
 		</div>
-		{% call text(
-			    'content',
-			    url_for('put_content'),
-			    'input changed delay:1s, input changed from:input.extractor-name delay:500ms',
-			    'span#content-message',
-			    'innerHTML',
-			    class='grow'
-			)
-		%}
+		{% call text("content", url_for("put_content"), "input changed delay:1s", class="grow") %}
 		    {{- template.content -}}
 		{% endcall %}
-		<span id="content-message"></span>
 	    </div>
 	</div>
+	<div class="flex justify-center">
+	    {% set success = url_for('success') %}
+	    <button
+		hx-get="{{ url_for('save') }}"
+		hx-target="span#save-message"
+		hx-on::after-request="if(event.detail.xhr.status == 204) { window.location.href = '{{ success }}'; }"
+	    >
+		Save
+	    </button>
+	</div>
+	<div class="flex justify-center">
+	    <span id="save-message"></span>
 	</div>
     </body>
 </html>
