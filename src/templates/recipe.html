@@ -16,7 +16,7 @@
 		</div>
 		<div class="flex justify-center">
 		    <button
-			hx-get="{{ url_for('extractor') }}"
+			hx-get="{{ url_for('get_extractor') }}"
 			hx-trigger="click"
 			hx-target="#extractors"
 			hx-swap="beforeend"
@@ -53,9 +53,9 @@
 	    </div>
 	</div>
 	<div class="flex justify-center">
-	    {% set success = url_for('success') %}
+	    {% set success = url_for('get_success') %}
 	    <button
-		hx-get="{{ url_for('save') }}"
+		hx-get="{{ url_for('get_save') }}"
 		hx-target="span#save-message"
 		hx-on::after-request="if(event.detail.xhr.status == 204) { window.location.href = '{{ success }}'; }"
 	    >
