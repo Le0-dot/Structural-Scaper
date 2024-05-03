@@ -1,5 +1,6 @@
 from random import randint
 from enum import StrEnum
+from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field, computed_field, model_validator
 
@@ -21,7 +22,7 @@ class Extractor(BaseModel):
 
     @model_validator(mode="after")
     def valid_value(self) -> "Extractor":
-        if not self.anchor_selector and self.value == ValueType.href:
+        if not self.value or self.value == ValueType.href:
             self.value = self.guess_value()
         return self
 

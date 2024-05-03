@@ -24,7 +24,7 @@
 	{{ args_to_attrs(kwargs) }}
 	id="{{ name }}"
 	name="{{ name }}"
-	value="{{ value }}"
+	value="{{ value if value is not none }}"
 	placeholder="{{ name.capitalize() }}..."
 	hx-put="{{ endpoint }}"
 	{% if trigger is not none %}

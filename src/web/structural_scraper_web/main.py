@@ -19,7 +19,9 @@ app.include_router(details_router, prefix="/select/details")
 app.mount("/js", StaticFiles(directory="static/js"), name="js")
 app.mount("/css", StaticFiles(directory="static/css"), name="css")
 
+
 def gen_secret(length: int) -> str:
     return "".join([chr(randint(0, 128)) for _ in range(length)])
+
 
 app.add_middleware(SessionMiddleware, secret_key="sdfadsfa")  # gen_secret(128))
