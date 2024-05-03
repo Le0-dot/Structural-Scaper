@@ -14,7 +14,9 @@ router = APIRouter(
 
 
 @router.get("/", response_class=HTMLResponse)
-async def get_extractor(request: Request, templates: Jinja2Templates = Depends(templates)):
+async def get_extractor(
+    request: Request, templates: Jinja2Templates = Depends(templates)
+):
     with state_context(request) as state:
         extractor = Extractor()
         state.append_extractor(extractor)

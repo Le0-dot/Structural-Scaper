@@ -13,7 +13,9 @@ router = APIRouter(default_response_class=HTMLResponse)
 
 
 @router.get("/")
-async def get_details(request: Request, templates: Jinja2Templates = Depends(templates)):
+async def get_details(
+    request: Request, templates: Jinja2Templates = Depends(templates)
+):
     with state_context(request) as state:
         if state.current_extractor is None:
             raise HTTPException(
