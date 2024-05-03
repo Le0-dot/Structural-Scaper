@@ -28,7 +28,7 @@ def get_init(request: Request, url: str, delay: int):
 def get_save(request: Request):
     with state_context(request) as state, mongo() as db:
         try:
-            model_repr = state.to_model().model_dump()
+            model_repr = state.to_model().dump()
             db["model"].insert_one(model_repr)
             return Response(status_code=status.HTTP_204_NO_CONTENT)
         except ValidationError:

@@ -1,7 +1,7 @@
 from enum import StrEnum
-from uuid import uuid4
+from typing import Any, Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, BeforeValidator
 
 
 class ValueType(StrEnum):
@@ -23,9 +23,15 @@ class Template(BaseModel):
     next: str
 
 
+ObjectId = Annotated[str, BeforeValidator(str)]
+
+
 class Document(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid4()), alias="_id")
+    id: ObjectId | None = Field(default=None, alias="_id")
     host: str
     delay: int
     extractors: list[Extractor]
     template: Template
+
+    def dump(self) -> dict[str, Any]:
+        return self.model_dump(by_alias=True, exclude=["id"])
