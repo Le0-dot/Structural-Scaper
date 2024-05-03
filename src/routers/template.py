@@ -17,6 +17,13 @@ def put_filename(request: Request, data: dict[str, str] = Body()):
         return validate(state.template.filename, state.names)
 
 
+@router.put("/next")
+def put_next(request: Request, data: dict[str, str] = Body()):
+    with state_context(request) as state:
+        state.template.next = data["next"]
+        return validate(state.template.next, state.names)
+
+
 @router.put("/content")
 def put_content(request: Request, data: dict[str, str] = Body()):
     with state_context(request) as state:

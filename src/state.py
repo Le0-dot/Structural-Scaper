@@ -42,6 +42,7 @@ class Extractor(BaseModel):
 class Template(BaseModel):
     filename: str | None = None
     content: str = ""
+    next: str | None = None
 
 
 class State(BaseModel):

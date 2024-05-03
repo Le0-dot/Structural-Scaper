@@ -5,52 +5,68 @@
 	<script src="{{ url_for('js', path='htmx/json-enc.js') }}"></script>
 	<link rel="stylesheet" href="{{ url_for('css', path='tailwind.css') }}">
     </head>
-    <body class="flex h-full">
-	<div class="basis-1/2">
-	    <h2 class="text-center">Extractors</h2>
-	    <div id="extractors">
-		{% for extractor in extractors %}
-		    {{ extractor }}
-		{% endfor %}
+    <body class="flex flex-col h-full">
+	<div class="flex grow">
+	    <div class="basis-1/2">
+		<h2 class="text-center">Extractors</h2>
+		<div id="extractors">
+		    {% for extractor in extractors %}
+			{{ extractor }}
+		    {% endfor %}
+		</div>
+		<div class="flex justify-center">
+		    <button
+			hx-get="{{ url_for('extractor') }}"
+			hx-trigger="click"
+			hx-target="#extractors"
+			hx-swap="beforeend"
+		    >
+			Add extractor
+		    </button>
+		</div>
 	    </div>
-	    <div class="flex justify-center">
-		<button
-		    hx-get="{{ url_for('extractor') }}"
-		    hx-trigger="click"
-		    hx-target="#extractors"
-		    hx-swap="beforeend"
-		>
-		    Add extractor
-		</button>
+	    <div class="basis-1/2 flex flex-col">
+		<h2 class="text-center">Template</h2>
+		<div class="flex">
+		    {{ input(
+			    'filename',
+			    template.filename,
+			    url_for('put_filename'),
+			    'input changed delay:500ms, input changed from:input.extractor-name delay:500ms',
+			    'span#filename-message',
+			    'innerHTML',
+			    class='grow'
+		       )
+		    }}
+		    <span id="filename-message"></span>
+		</div>
+		<div class="flex">
+		    {{ input(
+			    'next',
+			    template.next,
+			    url_for('put_next'),
+			    'input changed delay:500ms, input changed from:input.extractor-name delay:500ms',
+			    'span#next-message',
+			    'innerHTML',
+			    class='grow'
+		       )
+		    }}
+		    <span id="next-message"></span>
+		</div>
+		{% call text(
+			    'content',
+			    url_for('put_content'),
+			    'input changed delay:1s, input changed from:input.extractor-name delay:500ms',
+			    'span#content-message',
+			    'innerHTML',
+			    class='grow'
+			)
+		%}
+		    {{- template.content -}}
+		{% endcall %}
+		<span id="content-message"></span>
 	    </div>
 	</div>
-	<div class="basis-1/2 flex flex-col">
-	    <h2 class="text-center">Template</h2>
-	    <div class="flex">
-		{{ input(
-			'filename',
-			template.filename,
-			url_for('put_filename'),
-			'input changed delay:500ms, input changed from:input.extractor-name delay:500ms',
-			'span#filename-message',
-			'innerHTML',
-			class='grow'
-		   )
-		}}
-		<span id="filename-message"></span>
-	    </div>
-	    {% call text(
-			'content',
-			url_for('put_content'),
-			'input changed delay:1s, input changed from:input.extractor-name delay:500ms',
-			'span#content-message',
-			'innerHTML',
-			class='grow'
-		    )
-	    %}
-		{{- template.content -}}
-	    {% endcall %}
-	    <span id="content-message"></span>
 	</div>
     </body>
 </html>
