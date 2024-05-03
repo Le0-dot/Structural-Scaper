@@ -23,3 +23,18 @@ def get_init(request: Request, url: str, delay: int):
     init_state(request, unquote(url), delay)
     return str(request.url_for("get_recipe"))
 
+
+@router.get("/save", response_class=HTMLResponse)
+def get_save(request: Request):
+    with state_context(request) as state, mongo() as db:
+        try:
+            model_repr = state.to_model().model_dump()
+            db["model"].insert_one(model_repr)
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
+        except ValidationError:
+            return "Found errors"
+
+
+@router.get("/success", response_class=HTMLResponse)
+def get_success():
+    return "<h1>Success</h1>"
