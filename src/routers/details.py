@@ -12,7 +12,7 @@ router = APIRouter(default_response_class=HTMLResponse)
 
 
 @router.get("/")
-def details(request: Request, templates: Jinja2Templates = Depends(templates)):
+async def get_details(request: Request, templates: Jinja2Templates = Depends(templates)):
     with state_context(request) as state:
         if state.current_extractor is None:
             raise HTTPException(
@@ -29,7 +29,7 @@ def details(request: Request, templates: Jinja2Templates = Depends(templates)):
 
 
 @router.post("/preview")
-def preview(
+async def post_preview(
     request: Request,
     body: dict[str, str | list[str]] = Body(),
 ):

@@ -7,7 +7,7 @@
     </head>
     <body>
 	<table
-	    hx-post="{{ url_for('preview') }}"
+	    hx-post="{{ url_for('post_preview') }}"
 	    hx-trigger="load, change"
 	    hx-target="#preview"
 	    hx-include="this"
@@ -40,6 +40,6 @@
 	    </tbody>
 	</table>
 	<div id="preview">{{ preview }}</div>
-	<a href="{{ url_for('recipe') }}">Confirm</a>
+	<a href="{{ url_for('get_recipe') }}">Confirm</a>
     </body>
 </html>
