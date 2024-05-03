@@ -2,10 +2,10 @@
 <div id="extractor" class="flex-col">
     <div class="flex">
 	{{ input(
-		'name',
+		"name",
 		name,
-		url_for('put_name', id=id),
-		'input changed delay:500ms',
+		url_for("put_extractor_name", id=id),
+		"input changed delay:500ms",
 		class='"extractor-name grow"',
 		onkeypress='"return event.charCode != 32"'
 	   )
@@ -20,15 +20,15 @@
 		{{ selector }}
 	    {% endif %}
 	</span>
-	{% set options = ['text', 'innerHTML', 'outerHTML'] %}
-	{% if selector is not none and selector.split()[-1].startswith('a') %}
-	    {% set options = ['href', 'text', 'innerHTML', 'outerHTML'] %}
+	{% set options = ["text", "innerHTML", "outerHTML"] %}
+	{% if selector is not none and selector.split()[-1].startswith("a") %}
+	    {% set options = ["href", "text", "innerHTML", "outerHTML"] %}
 	{% endif %}
-	{{ select('value', options, value, url_for('put_value', id=id)) }}
+	{{ select("value", options, value, url_for("put_extractor_value", id=id)) }}
 	<a class="flex-none" href="{{ url_for('select').include_query_params(id=id) }}">Select</a>
     </div>
     <button
-	hx-delete="{{ url_for('remove', id=id) }}"
+	hx-delete="{{ url_for('delete_extractor', id=id) }}"
 	hx-trigger="click"
 	hx-target="closest div#extractor"
 	hx-swap="delete"

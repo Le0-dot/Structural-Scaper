@@ -12,7 +12,7 @@ router = APIRouter(
 
 
 @router.get("/", response_class=HTMLResponse)
-def extractor(request: Request, templates: Jinja2Templates = Depends(templates)):
+async def get_extractor(request: Request, templates: Jinja2Templates = Depends(templates)):
     with state_context(request) as state:
         extractor = Extractor()
         state.append_extractor(extractor)
@@ -24,7 +24,7 @@ def extractor(request: Request, templates: Jinja2Templates = Depends(templates))
 
 
 @router.put("/{id}/name", status_code=status.HTTP_200_OK)
-def put_name(request: Request, id: int, data: dict[str, str] = Body()):
+async def put_extractor_name(request: Request, id: int, data: dict[str, str] = Body()):
     with state_context(request) as state:
         extractor = state.extractors[id]
         if extractor is None:
@@ -33,7 +33,7 @@ def put_name(request: Request, id: int, data: dict[str, str] = Body()):
 
 
 @router.put("/{id}/value", status_code=status.HTTP_204_NO_CONTENT)
-def put_value(request: Request, id: int, data: dict[str, str] = Body()):
+async def put_extractor_value(request: Request, id: int, data: dict[str, str] = Body()):
     with state_context(request) as state:
         extractor = state.extractors[id]
         if extractor is None:
@@ -42,7 +42,7 @@ def put_value(request: Request, id: int, data: dict[str, str] = Body()):
 
 
 @router.delete("/{id}", status_code=status.HTTP_200_OK)
-def remove(request: Request, id: int):
+async def delete_extractor(request: Request, id: int):
     with state_context(request) as state:
         if id not in state.extractors.keys():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
