@@ -1,15 +1,9 @@
 from random import randint
-from enum import StrEnum
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field, computed_field, model_validator
 
-
-class ValueType(StrEnum):
-    href = "href"
-    text = "text"
-    innerHTML = "innerHTML"
-    outerHTML = "outerHTML"
+from structural_scraper_common import models, ValueType
 
 
 class Extractor(BaseModel):
@@ -39,11 +33,25 @@ class Extractor(BaseModel):
         else:
             return ValueType.text
 
+    def to_model(self) -> models.Extractor:
+        return models.Extractor(
+            name=self.name,
+            selector=self.selector,
+            value=self.value,
+        )
+
 
 class Template(BaseModel):
     filename: str | None = None
     content: str = ""
     next: str | None = None
+
+    def to_model(self) -> models.Template:
+        return models.Template(
+            filename=self.filename,
+            content=self.content,
+            next=self.next,
+        )
 
 
 class State(BaseModel):
@@ -76,3 +84,11 @@ class State(BaseModel):
             for extractor in self.extractors.values()
             if extractor.name is not None
         }
+
+    def to_model(self) -> models.Document:
+        return models.Document(
+            host=urlparse(self.url).netloc,
+            delay=self.delay,
+            extractors=[extractor.to_model() for extractor in self.extractors.values()],
+            template=self.template.to_model(),
+        )
