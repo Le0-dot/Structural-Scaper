@@ -18,7 +18,7 @@ def validate(source: str, availible: set[str]) -> str:
     if not (template := validate_syntax(source)):
         return "Invalid syntax"
 
-    availible.add("search")
+    availible.update(["search", "url"])
     if missing := validate_vars(template, availible):
         return f"Missing variables {', '.join(missing)}"
 
