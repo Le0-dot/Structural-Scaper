@@ -4,8 +4,9 @@ from fastapi.templating import Jinja2Templates
 
 from selector import parse_selector, build_selector
 from cleaner import get_clean, get_value
-from resources import state_context, templates, driver
-from state import ValueType
+from resources import state_context, templates
+
+from structural_scraper_common import driver, ValueType
 
 
 router = APIRouter(default_response_class=HTMLResponse)

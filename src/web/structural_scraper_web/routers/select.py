@@ -3,7 +3,9 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from cleaner import get_context
-from resources import state_context, templates, driver
+from resources import state_context, templates
+
+from structural_scraper_common import driver
 
 
 router = APIRouter(default_response_class=HTMLResponse)
