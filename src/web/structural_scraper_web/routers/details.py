@@ -40,7 +40,7 @@ async def post_preview(
         state.current_extractor.selector = selector
 
         extractor = state.current_extractor
-        if extractor.value is None or extractor.value == ValueType.text:
+        if extractor.value is None or extractor.value != ValueType.href:
             extractor.value = extractor.guess_value()
 
         bs = get_clean(state.url, driver, state.delay)
