@@ -11,11 +11,11 @@ router = APIRouter()
 
 
 @router.get("/", response_class=HTMLResponse)
-def index(request: Request, templates: Jinja2Templates = Depends(templates)):
+def get_index(request: Request, templates: Jinja2Templates = Depends(templates)):
     return templates.TemplateResponse(name="index.html", request=request)
 
 
 @router.get("/init", response_class=RedirectResponse)
-def init(request: Request, url: str, delay: int):
+def get_init(request: Request, url: str, delay: int):
     init_state(request, unquote(url), delay)
     return str(request.url_for("recipe"))
