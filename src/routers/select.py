@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, Request, status
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -10,7 +10,7 @@ router = APIRouter(default_response_class=HTMLResponse)
 
 
 @router.get("/")
-def select(
+async def get_select(
     request: Request,
     id: int,
     templates: Jinja2Templates = Depends(templates),
@@ -22,10 +22,3 @@ def select(
             context=get_context(state.url, driver, state.delay),
             request=request,
         )
-
-
-@router.put("/selector", status_code=status.HTTP_200_OK)
-def put_selector(request: Request, data: str = Body()):
-    with state_context(request) as state:
-        assert state.current_extractor is not None
-        state.current_extractor.selector = data
