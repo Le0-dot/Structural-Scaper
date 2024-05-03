@@ -1,17 +1,17 @@
-from fastapi import APIRouter, Request, Depends, status
-from fastapi.responses import HTMLResponse, Response
+from fastapi import APIRouter, Request, Depends
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from resources import state_context, templates
 
 
 router = APIRouter(
-    default_response_class=Response,
+    default_response_class=HTMLResponse,
 )
 
 
-@router.get("/", response_class=HTMLResponse)
-def recipe(request: Request, templates: Jinja2Templates = Depends(templates)):
+@router.get("/")
+async def get_recipe(request: Request, templates: Jinja2Templates = Depends(templates)):
     with state_context(request) as state:
         del state.current_extractor
 
@@ -27,9 +27,3 @@ def recipe(request: Request, templates: Jinja2Templates = Depends(templates)):
             context={"extractors": rendered, "template": state.template},
             request=request,
         )
-
-
-@router.put("/current", status_code=status.HTTP_204_NO_CONTENT)
-def current(request: Request, id: int):
-    with state_context(request) as state:
-        state.current_extractor_id = id
