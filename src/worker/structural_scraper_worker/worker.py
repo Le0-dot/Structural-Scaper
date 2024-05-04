@@ -1,6 +1,7 @@
 import os
 import re
 import logging
+import asyncio
 from pathlib import Path
 from typing import Any, Callable, ContextManager, Iterable
 from urllib.parse import urlparse
@@ -68,6 +69,7 @@ async def worker(url: str, driver_context: Callable[[], ContextManager[WebDriver
         while url:
             logger.debug(f"Worker: downloading {url}")
             driver.get(url)
+            await asyncio.sleep(model.delay)
             context = extract(model.extractors, driver)
             context.update({"url": url, "search": re.search})
 
