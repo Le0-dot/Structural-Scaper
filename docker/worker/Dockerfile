@@ -10,4 +10,4 @@ WORKDIR /app/src/worker
 RUN pip install .
 
 WORKDIR /app/src/web/structural_scraper_worker
-CMD ["python", "-e", "structural_scraper_worker"]
+CMD ["python", "-m", "structural_scraper_worker"]
