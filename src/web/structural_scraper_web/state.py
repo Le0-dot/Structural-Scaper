@@ -16,7 +16,7 @@ class Extractor(BaseModel):
 
     @model_validator(mode="after")
     def valid_value(self) -> "Extractor":
-        if not self.value or self.value == ValueType.href:
+        if not self.anchor_selector and self.value == ValueType.href:
             self.value = self.guess_value()
         return self
 

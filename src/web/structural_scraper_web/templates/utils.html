@@ -1,6 +1,6 @@
 {% macro args_to_attrs(args) %}
     {% for key, value in args.items() %}
-	{{ key }}="{{ value }}"
+	{{ key }}={{ value }}
     {%- endfor -%}
 {% endmacro %}
 
