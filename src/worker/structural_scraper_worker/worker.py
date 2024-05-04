@@ -1,5 +1,6 @@
 import os
 import re
+import logging
 from pathlib import Path
 from typing import Any, Callable, ContextManager, Iterable
 from urllib.parse import urlparse
@@ -47,6 +48,9 @@ def get_model(netloc: str, db_context: Callable[[], ContextManager[Database]] = 
 
 
 async def worker(url: str, driver_context: Callable[[], ContextManager[WebDriver]]):
+    logger = logging.getLogger("uvicorn")
+    logger.info("Worker: job started")
+
     model = get_model(urlparse(url).netloc)
 
     env = Environment(loader=BaseLoader())
@@ -56,8 +60,11 @@ async def worker(url: str, driver_context: Callable[[], ContextManager[WebDriver
 
     save_dir = Path(os.getenv("SAVE_DIR", "."))
 
+    logger.debug(f"Worker: read SAVE_DIR, saving to {save_dir.absolute()}")
+
     with driver_context() as driver:
         while url:
+            logger.debug(f"Worker: downloading {url}")
             driver.get(url)
             context = extract(model.extractors, driver)
             context.update({"url": url, "search": re.search})
@@ -66,4 +73,10 @@ async def worker(url: str, driver_context: Callable[[], ContextManager[WebDriver
             content = content_template.render(context)
             url = next_template.render(context)
 
+            logger.debug(f"Worker: rendered filename: {filename}")
+            logger.debug(f"Worker: rendered content: {content[:100]}...")
+            logger.debug(f"Worker: rendered next url: {url}")
+
             (save_dir / filename).write_text(content)
+
+    logger.info("Worker: job finished")
