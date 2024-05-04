@@ -14,7 +14,7 @@ def mongo(url: str = "mongodb://127.0.0.1", db: str = "db") -> Iterator[Database
         yield client[db]
 
 
-def driver(
+def webdriver(
     url: str = "http://127.0.0.1:4444", options: BaseOptions = FirefoxOptions()
 ) -> WebDriver:
     return Remote(command_executor=url, options=options)

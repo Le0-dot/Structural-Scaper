@@ -6,7 +6,7 @@ from selector import parse_selector, build_selector
 from cleaner import get_clean, get_value
 from resources import state_context, templates
 
-from structural_scraper_common import driver, ValueType
+from structural_scraper_common import webdriver, ValueType
 
 
 router = APIRouter(default_response_class=HTMLResponse)
@@ -45,6 +45,6 @@ async def post_preview(
         if extractor.value is None or extractor.value != ValueType.href:
             extractor.value = extractor.guess_value()
 
-        bs = get_clean(state.url, driver, state.delay)
+        bs = get_clean(state.url, webdriver, state.delay)
 
     return "\n".join(get_value(tag, extractor.value) for tag in bs.select(selector))

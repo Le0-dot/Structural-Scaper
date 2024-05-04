@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 from cleaner import get_context
 from resources import state_context, templates
 
-from structural_scraper_common import driver
+from structural_scraper_common import webdriver
 
 
 router = APIRouter(default_response_class=HTMLResponse)
@@ -21,7 +21,7 @@ async def get_select(
         state.current_extractor_id = id
         return templates.TemplateResponse(
             name="selector.html",
-            context=get_context(state.url, driver, state.delay),
+            context=get_context(state.url, webdriver, state.delay),
             request=request,
         )
 
