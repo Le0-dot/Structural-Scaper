@@ -41,7 +41,9 @@ def extract(extractors: list[Extractor], driver: WebDriver) -> dict[str, Any]:
     return {extractor.name: extract_one(extractor, driver) for extractor in extractors}
 
 
-def get_model(netloc: str, db_context: Callable[[], ContextManager[Database]] = lambda: mongo()) -> Document:
+def get_model(
+    netloc: str, db_context: Callable[[], ContextManager[Database]] = lambda: mongo()
+) -> Document:
     with db_context() as db:
         model = db["model"].find_one({"host": netloc})
         return Document.model_validate(model)
