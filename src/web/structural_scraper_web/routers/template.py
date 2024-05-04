@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request, Body
 from fastapi.responses import HTMLResponse
 
-from resources import state_context
-from jinja_validation import validate
+from ..resources import state_context
+from ..jinja_validation import validate
 
 
 router = APIRouter(

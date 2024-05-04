@@ -2,8 +2,8 @@ from fastapi import APIRouter, Request, Body, HTTPException, Depends, Response, 
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from state import Extractor
-from resources import state_context, templates
+from ..state import Extractor
+from ..resources import state_context, templates
 
 from structural_scraper_common import ValueType
 

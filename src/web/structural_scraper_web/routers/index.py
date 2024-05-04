@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import ValidationError
 
-from resources import init_state, state_context, templates
+from ..resources import init_state, state_context, templates
 
 from structural_scraper_common import mongo, StartWorker
 

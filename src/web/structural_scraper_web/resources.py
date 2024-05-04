@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
 
-from state import State
+from .state import State
 
 
 def templates(path: str = "templates") -> Jinja2Templates:
