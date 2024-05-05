@@ -32,6 +32,8 @@ services:
 
   mongo:
     image: mongodb/mongodb-community-server:6.0-ubi8
+    volumes:
+      - mongo_volume:/data/db
     ports:
       - 27017:27017
 
@@ -41,3 +43,6 @@ services:
     ports:
       - 4444:4444
       - 7900:7900
+
+volumes:
+  mongo_volume:
