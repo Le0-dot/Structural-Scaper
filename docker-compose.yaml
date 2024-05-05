@@ -7,9 +7,9 @@ services:
       - 8000:8000
     environment:
       - WEB_PORT=8000
-      - WORKER_URL="http://worker:7711"
-      - MONGO_URL="mongodb://mongo"
-      - SELENIUM_URL="http://selenium:4444"
+      - WORKER_URL=http://worker:7711
+      - MONGO_URL=mongodb://mongo
+      - SELENIUM_URL=http://selenium:4444
     depends_on:
       - mongo
       - selenium
@@ -20,20 +20,18 @@ services:
       dockerfile: ./docker/worker/Dockerfile
     ports:
       - 7711:7711
+    volumes:
+      - ./output:/app/output
     environment:
-      - MONGO_URL="mongodb://mongo"
-      - SELENIUM_URL="http://selenium:4444"
+      - SAVE_DIR=/app/output
+      - MONGO_URL=mongodb://mongo
+      - SELENIUM_URL=http://selenium:4444
     depends_on:
       - mongo
       - selenium
 
   mongo:
-    image: mongodb/mongodb-community-server:latest
-    # environment:
-    #   - MONGODB_INITDB_ROOT_USERNAME=user
-    #   - MONGODB_INITDB_ROOT_PASSWORD=pass
-    # volumes:
-    #   - ./data:/data/db
+    image: mongodb/mongodb-community-server:6.0-ubi8
     ports:
       - 27017:27017
 
