@@ -1,3 +1,4 @@
+from re import search
 from random import randint
 from urllib.parse import urlparse
 
@@ -20,7 +21,6 @@ class Extractor(BaseModel):
             self.value = self.guess_value()
         return self
 
-    @computed_field
     @property
     def anchor_selector(self) -> bool:
         if self.selector is None:
@@ -76,14 +76,6 @@ class State(BaseModel):
         if extractor.id in self.extractors.keys():
             raise ValueError("trying to append already existing extractor")
         self.extractors[extractor.id] = extractor
-
-    @property
-    def names(self) -> set[str]:
-        return {
-            extractor.name
-            for extractor in self.extractors.values()
-            if extractor.name is not None
-        }
 
     def to_model(self) -> models.Document:
         return models.Document(
