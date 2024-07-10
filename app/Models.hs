@@ -24,6 +24,7 @@ data RecipeT f = Recipe
         , _recipeName    :: C f Text
         , _recipeHost    :: C f Text
         , _recipeDelayMs :: C f Int32
+        , _recipeIsDraft :: C f Bool
         } deriving (Generic, Beamable)
 
 type Recipe = RecipeT Identity
@@ -85,42 +86,97 @@ type TemplateId = PrimaryKey TemplateT Identity
 deriving instance Show TemplateId
 
 
+data ExtractorDraftT f = ExtractorDraft
+        { _extractorDraftId        :: C f Int32
+        , _extractorDraftName      :: C f (Maybe Text)
+        , _extractorDraftType      :: C f (Maybe ExtractorType)
+        , _extractorDraftForRecipe :: PrimaryKey RecipeT f
+        } deriving (Generic, Beamable)
+
+type ExtractorDraft = ExtractorDraftT Identity
+deriving instance Show ExtractorDraft
+
+instance Table ExtractorDraftT where
+    data PrimaryKey ExtractorDraftT f = ExtractorDraftId (C f Int32)
+                deriving (Generic, Beamable)
+    primaryKey = ExtractorDraftId . _extractorDraftId
+
+type ExtractorDraftId = PrimaryKey ExtractorDraftT Identity
+deriving instance Show ExtractorDraftId
+
+
+data SelectorT f = Selector
+        { _selectorId                :: C f Int32
+        , _selectorTag               :: C f Text
+        , _selectorTagId             :: C f (Maybe Text)
+        , _selectorTagIdIsTaken      :: C f Bool
+        , _selectorForExtractorDraft :: PrimaryKey ExtractorDraftT f
+        } deriving (Generic, Beamable)
+
+type Selector = SelectorT Identity
+deriving instance Show Selector
+
+instance Table SelectorT where
+    data PrimaryKey SelectorT f = SelectorId (C f Int32)
+                deriving (Generic, Beamable)
+    primaryKey = SelectorId . _selectorId
+
+type SelectorId = PrimaryKey SelectorT Identity
+deriving instance Show SelectorId
+
+
+data SelectorClassT f = SelectorClass
+        { _selectorClassId          :: C f Int32
+        , _selectorClassValue       :: C f Text
+        , _selectorClassIsTaken     :: C f Bool
+        , _selectorClassForSelector :: PrimaryKey SelectorT f
+        } deriving (Generic, Beamable)
+
+type SelectorClass = SelectorClassT Identity
+deriving instance Show SelectorClass
+
+instance Table SelectorClassT where
+    data PrimaryKey SelectorClassT f = SelectorClassId (C f Int32)
+                deriving (Generic, Beamable)
+    primaryKey = SelectorClassId . _selectorClassId
+
+type SelectorClassId = PrimaryKey SelectorClassT Identity
+deriving instance Show SelectorClassId
+
+
 data ScraperDB f = ScraperDB
-        { _scraperRecipes    :: f (TableEntity RecipeT)
-        , _scraperExtractors :: f (TableEntity ExtractorT)
-        , _scraperTemplates  :: f (TableEntity TemplateT)
+        { _scraperRecipe         :: f (TableEntity RecipeT)
+        , _scraperExtractor      :: f (TableEntity ExtractorT)
+        , _scraperTemplate       :: f (TableEntity TemplateT)
+        , _scraperExtractorDraft :: f (TableEntity ExtractorDraftT)
+        , _scraperSelector       :: f (TableEntity SelectorT)
+        , _scraperSelectorClass  :: f (TableEntity SelectorClassT)
         } deriving (Generic, Database be)
 
 scraperDb :: DatabaseSettings be ScraperDB
 scraperDb = defaultDbSettings `withDbModification`
             dbModification
-                { _scraperRecipes =
-                    setEntityName "recipe" <>
+                { _scraperExtractor =
+                    modifyTableFields
+                        tableModification { _extractorForRecipe = RecipeId "recipe" }
+                , _scraperTemplate =
+                    modifyTableFields
+                        tableModification { _templateForRecipe = RecipeId "recipe" }
+                , _scraperExtractorDraft =
                     modifyTableFields
                         tableModification
-                            { _recipeId      = "id"
-                            , _recipeName    = "name"
-                            , _recipeHost    = "host"
-                            , _recipeDelayMs = "delay_ms"
+                            { _extractorDraftName = "name"
+                            , _extractorDraftType = "type"
+                            , _extractorDraftForRecipe = RecipeId "recipe"
                             }
-                , _scraperExtractors =
-                    setEntityName "extractor" <>
+                , _scraperSelector =
+                    modifyTableFields
+                        tableModification { _selectorForExtractorDraft = ExtractorDraftId "extractor_draft" }
+                , _scraperSelectorClass =
                     modifyTableFields
                         tableModification
-                            { _extractorId        = "id"
-                            , _extractorName      = "name"
-                            , _extractorSelector  = "selector"
-                            , _extractorType      = "type"
-                            , _extractorForRecipe = RecipeId "recipe"
-                            }
-                , _scraperTemplates =
-                    setEntityName "tempalte" <>
-                    modifyTableFields
-                        tableModification
-                            { _templateId        = "id"
-                            , _templateFilename  = "filename"
-                            , _templateContent   = "content"
-                            , _templateNext      = "next"
-                            , _templateForRecipe = RecipeId "recipe"
+                            { _selectorClassValue = "value"
+                            , _selectorClassIsTaken = "is_taken"
+                            , _selectorClassForSelector = SelectorId "selector"
                             }
                 }
