@@ -15,7 +15,8 @@ module Models where
 
 import Database.Beam
 import Database.Beam.Backend.SQL
-import Data.Text (Text)
+import Database.Beam.Sqlite
+import Data.Text
 import Data.Int
 
 
@@ -63,7 +64,10 @@ data ExtractorType = Href | TextType | InnerHTML | OuterHTML
                 deriving (Show, Read, Eq, Ord, Enum)
 
 instance HasSqlValueSyntax be String => HasSqlValueSyntax be ExtractorType where
-  sqlValueSyntax = autoSqlValueSyntax
+    sqlValueSyntax = autoSqlValueSyntax
+
+instance FromBackendRow Sqlite ExtractorType where
+    fromBackendRow = read . unpack <$> fromBackendRow
 
 
 data TemplateT f = Template
@@ -88,7 +92,7 @@ deriving instance Show TemplateId
 
 data ExtractorDraftT f = ExtractorDraft
         { _extractorDraftId        :: C f Int32
-        , _extractorDraftName      :: C f (Maybe Text)
+        , _extractorDraftName      :: C f Text
         , _extractorDraftType      :: C f (Maybe ExtractorType)
         , _extractorDraftForRecipe :: PrimaryKey RecipeT f
         } deriving (Generic, Beamable)
@@ -165,17 +169,22 @@ scraperDb = defaultDbSettings `withDbModification`
                 , _scraperExtractorDraft =
                     modifyTableFields
                         tableModification
-                            { _extractorDraftName = "name"
+                            { _extractorDraftId = "id"
+                            , _extractorDraftName = "name"
                             , _extractorDraftType = "type"
                             , _extractorDraftForRecipe = RecipeId "recipe"
                             }
                 , _scraperSelector =
                     modifyTableFields
-                        tableModification { _selectorForExtractorDraft = ExtractorDraftId "extractor_draft" }
+                        tableModification
+                            { _selectorId = "id"
+                            , _selectorForExtractorDraft = ExtractorDraftId "extractor_draft"
+                            }
                 , _scraperSelectorClass =
                     modifyTableFields
                         tableModification
-                            { _selectorClassValue = "value"
+                            { _selectorClassId = "id"
+                            , _selectorClassValue = "value"
                             , _selectorClassIsTaken = "is_taken"
                             , _selectorClassForSelector = SelectorId "selector"
                             }
