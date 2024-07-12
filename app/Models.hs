@@ -16,8 +16,12 @@ module Models where
 import Database.Beam
 import Database.Beam.Backend.SQL
 import Database.Beam.Sqlite
-import Data.Text
+import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Int
+import Data.Maybe (catMaybes, fromMaybe)
+import Control.Monad (guard)
+import Control.Arrow ((&&&))
 
 
 data RecipeT f = Recipe
@@ -69,7 +73,7 @@ instance HasSqlValueSyntax be String => HasSqlValueSyntax be ExtractorType where
     sqlValueSyntax = autoSqlValueSyntax
 
 instance FromBackendRow Sqlite ExtractorType where
-    fromBackendRow = read . unpack <$> fromBackendRow
+    fromBackendRow = read . T.unpack <$> fromBackendRow
 
 
 data DraftT f = Draft
@@ -191,3 +195,26 @@ scraperDb = defaultDbSettings `withDbModification`
                             , _selectorClassForSelector = SelectorId "selector"
                             }
                 }
+
+buildTagSelector :: Text -> Maybe Text -> [Maybe Text] -> Text
+buildTagSelector tag tagId classes = tag <> idStr <> classesStr
+    where idStr = (fromMaybe "" (("#" <>) <$> tagId))
+          classesStr = (T.concat $ map ("." <>) $ catMaybes classes)
+
+buildSelector :: [Text] -> Text
+buildSelector = T.unwords . filter ((== 0) . T.length)
+
+toMaybe :: Bool -> a -> Maybe a
+toMaybe b a = guard b *> pure a
+
+toMaybeList :: (a -> Bool) -> (a -> b) -> [a] -> [Maybe b]
+toMaybeList f g = map $ uncurry toMaybe . (f &&& g)
+
+makeTagSelector :: Selector -> [SelectorClass] -> Text
+makeTagSelector selector selectorClasses =
+    if _selectorTagIsTaken selector
+        then buildTagSelector tag tagId classes
+        else ""
+    where tag = _selectorTag selector
+          tagId = guard (_selectorTagIdIsTaken selector) *> _selectorTagId selector
+          classes = toMaybeList _selectorClassIsTaken _selectorClassValue selectorClasses

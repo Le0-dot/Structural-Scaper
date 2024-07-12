@@ -13,18 +13,14 @@ main = testDB
 testDB :: IO ()
 testDB = do
     conn <- open "testDB.db"
-    newRecipes <- runCreateList conn $ createRecipe "testRecipe" "example.com" 3000
-    putStrLn $ show newRecipes
-    f:_ <- runSelectList conn getRecipes
-    runCreate conn $ createExtractor "testExtractor" "div#id.asdf" TextType f
-    runCreate conn $ createTemplate "{{ filename }}" "{{ text }}" "{{ url }}" f
-    ed <- runCreateOne conn $ createExtractorDraft "testDraftRecipe" Nothing f
-    s <- runCreateOne conn $ createSelector "div" (Just "asdf") True ed
-    runCreate conn $ createSelectorClass "foo" False s
+    r <- runCreateOne conn $ createRecipe "testRecipe" "example.com" 3000 "{{ filename }}" "{{ text }}" "{{ url }}"
+    putStrLn $ show r
+    runCreate conn $ createExtractor "testExtractor" "div#id.asdf" TextType r
+    d <- runCreateOne conn $ createDraft "testDraftRecipe" "asdf.asdf" 5000 "asfd" "zxcv" "asdf"
+    ed <- runCreateOne conn $ createExtractorDraft "testDraftRecipe" Nothing d
+    s <- runCreateOne conn $ createSelector "div" False (Just "asdf") True ed
+    ss <- runCreateOne conn $ createSelectorClass "foo" True s
 
-    (Just (e, t)) <- runSelectOne conn $ getDataForRecipe f
-
-    putStrLn $ show e
-    putStrLn $ show t
+    putStrLn $ show $ makeTagSelector s [ss]
 
     return ()
