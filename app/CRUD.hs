@@ -76,15 +76,20 @@ getRecipes = select $ all_ (_scraperRecipe scraperDb)
 getDrafts :: HasQBuilder be => SqlSelect be Draft
 getDrafts = select $ all_ (_scraperDraft scraperDb)
 
+getDraftForId :: (HasQBuilder be, HasSqlEqualityCheck be Int32) => Int32 -> SqlSelect be Draft
+getDraftForId draftId =
+    select $ filter_ (\d -> _draftId d ==. val_ draftId) $
+    all_ (_scraperDraft scraperDb)
+
 getExtractorsForRecipe ::
     (HasQBuilder be, HasSqlEqualityCheck be Int32, BeamSqlBackendCanSerialize be Text) =>
     Recipe -> SqlSelect be Extractor
 getExtractorsForRecipe recipe = select $ oneToMany_ (_scraperExtractor scraperDb) _extractorForRecipe (val_ recipe)
 
-getDataForRecipeDraft ::
+getExtractorsForDraft ::
     (HasQBuilder be, HasSqlEqualityCheck be Int32, BeamSqlBackendCanSerialize be Text) =>
     Draft -> SqlSelect be ExtractorDraft
-getDataForRecipeDraft draft = select $ oneToMany_ (_scraperExtractorDraft scraperDb) _extractorDraftForDraft (val_ draft)
+getExtractorsForDraft draft = select $ oneToMany_ (_scraperExtractorDraft scraperDb) _extractorDraftForDraft (val_ draft)
 
 getSelectors ::
     (HasQBuilder be, HasSqlEqualityCheck be Int32, BeamSqlBackendCanSerialize be Text, BeamSqlBackendCanSerialize be (Maybe ExtractorType)) =>

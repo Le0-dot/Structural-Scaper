@@ -22,6 +22,7 @@ import Data.Int
 import Data.Maybe (catMaybes, fromMaybe)
 import Control.Monad (guard)
 import Control.Arrow ((&&&))
+import Data.Composition
 
 
 data RecipeT f = Recipe
@@ -196,25 +197,20 @@ scraperDb = defaultDbSettings `withDbModification`
                             }
                 }
 
-buildTagSelector :: Text -> Maybe Text -> [Maybe Text] -> Text
-buildTagSelector tag tagId classes = tag <> idStr <> classesStr
-    where idStr = (fromMaybe "" (("#" <>) <$> tagId))
-          classesStr = (T.concat $ map ("." <>) $ catMaybes classes)
-
-buildSelector :: [Text] -> Text
-buildSelector = T.unwords . filter ((== 0) . T.length)
-
 toMaybe :: Bool -> a -> Maybe a
 toMaybe b a = guard b *> pure a
 
 toMaybeList :: (a -> Bool) -> (a -> b) -> [a] -> [Maybe b]
 toMaybeList f g = map $ uncurry toMaybe . (f &&& g)
 
-makeTagSelector :: Selector -> [SelectorClass] -> Text
-makeTagSelector selector selectorClasses =
-    if _selectorTagIsTaken selector
-        then buildTagSelector tag tagId classes
-        else ""
+buildTagSelector :: Selector -> [SelectorClass] -> Maybe Text
+buildTagSelector selector selectorClasses =
+    toMaybe (_selectorTagIdIsTaken selector) $ foldl1 (<>) [tag, formattedId, formattedClasses]
     where tag = _selectorTag selector
           tagId = guard (_selectorTagIdIsTaken selector) *> _selectorTagId selector
           classes = toMaybeList _selectorClassIsTaken _selectorClassValue selectorClasses
+          formattedId = fromMaybe "" $ ("#" <>) <$> tagId
+          formattedClasses = T.concat $ map ("." <>) $ catMaybes classes
+
+buildSelector :: [Selector] -> [[SelectorClass]] -> Text
+buildSelector = T.unwords . catMaybes .: zipWith buildTagSelector
