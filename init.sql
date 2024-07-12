@@ -1,6 +1,6 @@
 DROP TABLE recipe;
 DROP TABLE extractor;
-DROP TABLE template;
+DROP TABLE draft;
 DROP TABLE extractor_draft;
 DROP TABLE selector;
 DROP TABLE selector_class;
@@ -10,8 +10,11 @@ CREATE TABLE recipe (
     name VARCHAR NOT NULL,
     host VARCHAR NOT NULL,
     delay_ms INTEGER NOT NULL,
-    is_draft BOOLEAN NOT NULL CHECK (is_draft IN (0, 1))
+    template_filename VARCHAR NOT NULL,
+    template_content VARCHAR NOT NULL,
+    template_next VARCHAR NOT NULL
 );
+
 CREATE TABLE extractor (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL,
@@ -20,29 +23,35 @@ CREATE TABLE extractor (
     recipe INTEGER NOT NULL,
     FOREIGN KEY(recipe) REFERENCES recipe(id)
 );
-CREATE TABLE template (
+
+CREATE TABLE draft (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    filename VARCHAR NOT NULL,
-    content VARCHAR NOT NULL,
-    next VARCHAR NOT NULL,
-    recipe INTEGER NOT NULL,
-    FOREIGN KEY(recipe) REFERENCES recipe(id)
+    name VARCHAR NOT NULL,
+    host VARCHAR NOT NULL,
+    delay_ms INTEGER NOT NULL,
+    template_filename VARCHAR NOT NULL,
+    template_content VARCHAR NOT NULL,
+    template_next VARCHAR NOT NULL
 );
+
 CREATE TABLE extractor_draft (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL,
     type VARCHAR,
-    recipe INTEGER NOT NULL,
-    FOREIGN KEY(recipe) REFERENCES recipe(id)
+    draft INTEGER NOT NULL,
+    FOREIGN KEY(draft) REFERENCES draft(id)
 );
+
 CREATE TABLE selector (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tag VARCHAR NOT NULL,
+    tag_is_taken BOOLEAN NOT NULL CHECK (tag_id_is_taken IN (0, 1)),
     tag_id VARCHAR,
     tag_id_is_taken BOOLEAN NOT NULL CHECK (tag_id_is_taken IN (0, 1)),
     extractor_draft INTEGER NOT NULL,
     FOREIGN KEY(extractor_draft) REFERENCES extractor_draft(id)
 );
+
 CREATE TABLE selector_class (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     value VARCHAR NOT NULL,

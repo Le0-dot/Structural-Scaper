@@ -21,11 +21,13 @@ import Data.Int
 
 
 data RecipeT f = Recipe
-        { _recipeId      :: C f Int32
-        , _recipeName    :: C f Text
-        , _recipeHost    :: C f Text
-        , _recipeDelayMs :: C f Int32
-        , _recipeIsDraft :: C f Bool
+        { _recipeId                :: C f Int32
+        , _recipeName              :: C f Text
+        , _recipeHost              :: C f Text
+        , _recipeDelayMs           :: C f Int32
+        , _recipeTemplateFilename  :: C f Text
+        , _recipeTemplateContent   :: C f Text
+        , _recipeTemplateNext      :: C f Text
         } deriving (Generic, Beamable)
 
 type Recipe = RecipeT Identity
@@ -70,31 +72,33 @@ instance FromBackendRow Sqlite ExtractorType where
     fromBackendRow = read . unpack <$> fromBackendRow
 
 
-data TemplateT f = Template
-        { _templateId        :: C f Int32
-        , _templateFilename  :: C f Text
-        , _templateContent   :: C f Text
-        , _templateNext      :: C f Text
-        , _templateForRecipe :: PrimaryKey RecipeT f
+data DraftT f = Draft
+        { _draftId                :: C f Int32
+        , _draftName              :: C f Text
+        , _draftHost              :: C f Text
+        , _draftDelayMs           :: C f Int32
+        , _draftTemplateFilename  :: C f Text
+        , _draftTemplateContent   :: C f Text
+        , _draftTemplateNext      :: C f Text
         } deriving (Generic, Beamable)
 
-type Template = TemplateT Identity
-deriving instance Show Template
+type Draft = DraftT Identity
+deriving instance Show Draft
 
-instance Table TemplateT where
-    data PrimaryKey TemplateT f = TemplateId (C f Int32)
+instance Table DraftT where
+    data PrimaryKey DraftT f = DraftId (C f Int32)
                 deriving (Generic, Beamable)
-    primaryKey = TemplateId . _templateId
+    primaryKey = DraftId . _draftId
 
-type TemplateId = PrimaryKey TemplateT Identity
-deriving instance Show TemplateId
+type DraftId = PrimaryKey DraftT Identity
+deriving instance Show DraftId
 
 
 data ExtractorDraftT f = ExtractorDraft
         { _extractorDraftId        :: C f Int32
         , _extractorDraftName      :: C f Text
         , _extractorDraftType      :: C f (Maybe ExtractorType)
-        , _extractorDraftForRecipe :: PrimaryKey RecipeT f
+        , _extractorDraftForDraft  :: PrimaryKey DraftT f
         } deriving (Generic, Beamable)
 
 type ExtractorDraft = ExtractorDraftT Identity
@@ -112,6 +116,7 @@ deriving instance Show ExtractorDraftId
 data SelectorT f = Selector
         { _selectorId                :: C f Int32
         , _selectorTag               :: C f Text
+        , _selectorTagIsTaken        :: C f Bool
         , _selectorTagId             :: C f (Maybe Text)
         , _selectorTagIdIsTaken      :: C f Bool
         , _selectorForExtractorDraft :: PrimaryKey ExtractorDraftT f
@@ -151,7 +156,7 @@ deriving instance Show SelectorClassId
 data ScraperDB f = ScraperDB
         { _scraperRecipe         :: f (TableEntity RecipeT)
         , _scraperExtractor      :: f (TableEntity ExtractorT)
-        , _scraperTemplate       :: f (TableEntity TemplateT)
+        , _scraperDraft          :: f (TableEntity DraftT)
         , _scraperExtractorDraft :: f (TableEntity ExtractorDraftT)
         , _scraperSelector       :: f (TableEntity SelectorT)
         , _scraperSelectorClass  :: f (TableEntity SelectorClassT)
@@ -163,16 +168,13 @@ scraperDb = defaultDbSettings `withDbModification`
                 { _scraperExtractor =
                     modifyTableFields
                         tableModification { _extractorForRecipe = RecipeId "recipe" }
-                , _scraperTemplate =
-                    modifyTableFields
-                        tableModification { _templateForRecipe = RecipeId "recipe" }
                 , _scraperExtractorDraft =
                     modifyTableFields
                         tableModification
                             { _extractorDraftId = "id"
                             , _extractorDraftName = "name"
                             , _extractorDraftType = "type"
-                            , _extractorDraftForRecipe = RecipeId "recipe"
+                            , _extractorDraftForDraft = DraftId "draft"
                             }
                 , _scraperSelector =
                     modifyTableFields

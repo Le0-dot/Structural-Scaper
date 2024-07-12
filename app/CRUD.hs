@@ -15,17 +15,10 @@ import Models
 
 createRecipe ::
     (BeamSqlBackend be, BeamSqlBackendCanSerialize be Text) =>
-    Text -> Text -> Int32 -> SqlInsert be RecipeT
-createRecipe name host delayMs =
+    Text -> Text -> Int32 -> Text -> Text -> Text -> SqlInsert be RecipeT
+createRecipe name host delayMs filename content next =
     insert (_scraperRecipe scraperDb) $
-    insertExpressions [ Recipe default_ (val_ name) (val_ host) (val_ delayMs) (val_ False)]
-
-createRecipeDraft ::
-    (BeamSqlBackend be, BeamSqlBackendCanSerialize be Text) =>
-    Text -> Text -> Int32 -> SqlInsert be RecipeT
-createRecipeDraft name host delayMs =
-    insert (_scraperRecipe scraperDb) $
-    insertExpressions [ Recipe default_ (val_ name) (val_ host) (val_ delayMs) (val_ True)]
+    insertExpressions [ Recipe default_ (val_ name) (val_ host) (val_ delayMs) (val_ filename) (val_ content) (val_ next) ]
 
 createExtractor ::
     (BeamSqlBackend be, BeamSqlBackendCanSerialize be String, BeamSqlBackendCanSerialize be Text) =>
@@ -34,26 +27,26 @@ createExtractor name selector extractorType recipe =
     insert (_scraperExtractor scraperDb) $
     insertExpressions [ Extractor default_ (val_ name) (val_ selector) (val_ extractorType) (val_ $ pk recipe) ]
 
-createTemplate ::
+createDraft ::
     (BeamSqlBackend be, BeamSqlBackendCanSerialize be Text) =>
-    Text -> Text -> Text -> Recipe -> SqlInsert be TemplateT
-createTemplate filename content next recipe =
-    insert (_scraperTemplate scraperDb) $
-    insertExpressions [ Template default_ (val_ filename) (val_ content) (val_ next) (val_ $ pk recipe) ]
+    Text -> Text -> Int32 -> Text -> Text -> Text -> SqlInsert be DraftT
+createDraft name host delayMs filename content next =
+    insert (_scraperDraft scraperDb) $
+    insertExpressions [ Draft default_ (val_ name) (val_ host) (val_ delayMs) (val_ filename) (val_ content) (val_ next) ]
 
 createExtractorDraft ::
     (BeamSqlBackend be, BeamSqlBackendCanSerialize be (Maybe ExtractorType), BeamSqlBackendCanSerialize be Text) =>
-    Text -> Maybe ExtractorType -> Recipe -> SqlInsert be ExtractorDraftT
-createExtractorDraft name extractorType recipe =
+    Text -> Maybe ExtractorType -> Draft -> SqlInsert be ExtractorDraftT
+createExtractorDraft name extractorType draft =
     insert (_scraperExtractorDraft scraperDb) $
-    insertExpressions [ ExtractorDraft default_ (val_ name) (val_ extractorType) (val_ $ pk recipe) ]
+    insertExpressions [ ExtractorDraft default_ (val_ name) (val_ extractorType) (val_ $ pk draft) ]
 
 createSelector ::
     (BeamSqlBackend be, BeamSqlBackendCanSerialize be Text, BeamSqlBackendCanSerialize be (Maybe Text)) =>
-    Text -> Maybe Text -> Bool -> ExtractorDraft -> SqlInsert be SelectorT
-createSelector tag tagId isTaken extractorDraft =
+    Text -> Bool -> Maybe Text -> Bool -> ExtractorDraft -> SqlInsert be SelectorT
+createSelector tag isTaken tagId idIsTaken extractorDraft =
     insert (_scraperSelector scraperDb) $
-    insertExpressions [ Selector default_ (val_ tag) (val_ tagId) (val_ $ isJust tagId && isTaken) (val_ $ pk extractorDraft) ]
+    insertExpressions [ Selector default_ (val_ tag) (val_ isTaken) (val_ tagId) (val_ $ isJust tagId && idIsTaken) (val_ $ pk extractorDraft) ]
 
 createSelectorClass ::
     (BeamSqlBackend be, BeamSqlBackendCanSerialize be Text) =>
@@ -63,31 +56,35 @@ createSelectorClass classname isTaken selector =
     insertExpressions [ SelectorClass default_ (val_ classname) (val_ isTaken) (val_ $ pk selector) ]
 
 
+draftToRecipe ::
+    (BeamSqlBackend be, BeamSqlBackendCanSerialize be Text) =>
+    Draft -> SqlInsert be RecipeT
+draftToRecipe draft =
+    createRecipe
+        (_draftName draft)
+        (_draftHost draft)
+        (_draftDelayMs draft)
+        (_draftTemplateFilename draft)
+        (_draftTemplateContent draft)
+        (_draftTemplateNext draft)
+
+
+
 getRecipes :: HasQBuilder be => SqlSelect be Recipe
-getRecipes =
-    select $ filter_ (not_ . _recipeIsDraft) $
-    all_ (_scraperRecipe scraperDb)
+getRecipes = select $ all_ (_scraperRecipe scraperDb)
 
-getRecipeDrafts :: HasQBuilder be => SqlSelect be Recipe
-getRecipeDrafts =
-    select $ filter_ _recipeIsDraft $
-    all_ (_scraperRecipe scraperDb)
+getDrafts :: HasQBuilder be => SqlSelect be Draft
+getDrafts = select $ all_ (_scraperDraft scraperDb)
 
-getDataForRecipe ::
+getExtractorsForRecipe ::
     (HasQBuilder be, HasSqlEqualityCheck be Int32, BeamSqlBackendCanSerialize be Text) =>
-    Recipe -> SqlSelect be (Extractor, Template)
-getDataForRecipe recipe = select $ do
-    extractor <- oneToOne_ (_scraperExtractor scraperDb) _extractorForRecipe (val_ recipe)
-    template <- oneToOne_ (_scraperTemplate scraperDb) _templateForRecipe (val_ recipe)
-    return (extractor, template)
+    Recipe -> SqlSelect be Extractor
+getExtractorsForRecipe recipe = select $ oneToMany_ (_scraperExtractor scraperDb) _extractorForRecipe (val_ recipe)
 
 getDataForRecipeDraft ::
     (HasQBuilder be, HasSqlEqualityCheck be Int32, BeamSqlBackendCanSerialize be Text) =>
-    Recipe -> SqlSelect be (ExtractorDraft, Template)
-getDataForRecipeDraft recipe = select $ do
-    extractor <- oneToOne_ (_scraperExtractorDraft scraperDb) _extractorDraftForRecipe (val_ recipe)
-    template <- oneToOne_ (_scraperTemplate scraperDb) _templateForRecipe (val_ recipe)
-    return (extractor, template)
+    Draft -> SqlSelect be ExtractorDraft
+getDataForRecipeDraft draft = select $ oneToMany_ (_scraperExtractorDraft scraperDb) _extractorDraftForDraft (val_ draft)
 
 getSelectors ::
     (HasQBuilder be, HasSqlEqualityCheck be Int32, BeamSqlBackendCanSerialize be Text, BeamSqlBackendCanSerialize be (Maybe ExtractorType)) =>
