@@ -3,11 +3,13 @@
 module Main where
 
 import Database.SQLite.Simple
+import Network.Wai.Handler.Warp
 import Models
 import CRUD
+import API
 
 main :: IO ()
-main = testDB
+main = testDB >> testServer
 
 
 testDB :: IO ()
@@ -22,5 +24,10 @@ testDB = do
     ss <- runCreateOne conn $ createSelectorClass "foo" True s
 
     putStrLn $ show $ makeTagSelector s [ss]
+    close conn
 
-    return ()
+testServer :: IO ()
+testServer = do
+    putStrLn "Server strated"
+    withConnection "testDB.db" $
+        run 8080 . app
