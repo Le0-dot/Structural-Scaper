@@ -23,16 +23,22 @@ import Data.Text (Text)
 import Control.Monad (forM)
 
 
-data Page = Index | New | Edit Draft [(ExtractorDraft, Text)]
+data Index = Index
+data New = New
+data Edit = Edit Draft [ExtractorDraft] [Text]
 
-instance ToMarkup Page where
-    toMarkup Index = index
-    toMarkup New = new
-    toMarkup (Edit d es) = undefined
+instance ToMarkup Index where
+    toMarkup _ = index
 
-type API = Get '[HTML] Page
-        :<|> "new" :> Get '[HTML] Page
-        :<|> "edit" :> Capture "id" Int32 :> Get '[HTML] Page
+instance ToMarkup New where
+    toMarkup _ = new
+
+instance ToMarkup Edit where
+    toMarkup (Edit d es ts) = draftView d es ts
+
+type API = Get '[HTML] Index
+        :<|> "new" :> Get '[HTML] New
+        :<|> "edit" :> Capture "id" Int32 :> Get '[HTML] Edit
         :<|> "static" :> Raw
 
 server :: Connection -> Server API
@@ -42,7 +48,7 @@ server conn = do
     :<|> (editController conn)
     :<|> serveDirectoryWebApp "static/src"
 
-editController :: Connection -> Int32 -> Handler Page
+editController :: Connection -> Int32 -> Handler Edit
 editController conn draftId = do
     draft <- liftIO $ runSelectOne conn $ getDraftForId draftId
     case draft of
@@ -50,7 +56,7 @@ editController conn draftId = do
         Just d -> do
             extractors <- liftIO $ runSelectList conn $ getExtractorsForDraft d
             selectors <- forM extractors $ liftIO . makeSelector conn
-            return $ Edit d $ zip extractors selectors
+            return $ Edit d extractors selectors
 
 makeSelector :: Connection -> ExtractorDraft -> IO Text
 makeSelector conn extractor = do
@@ -62,4 +68,4 @@ apiProxy :: Proxy API
 apiProxy = Proxy
 
 app :: Connection -> Application
-app conn = serve apiProxy $ server conn
+app = serve apiProxy . server
