@@ -23,7 +23,7 @@ testDB = do
     s <- runCreateOne conn $ createSelector "div" False (Just "asdf") True ed
     ss <- runCreateOne conn $ createSelectorClass "foo" True s
 
-    putStrLn $ show $ makeTagSelector s [ss]
+    putStrLn $ show $ buildTagSelector s [ss]
     close conn
 
 testServer :: IO ()
