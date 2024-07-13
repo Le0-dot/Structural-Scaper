@@ -83,6 +83,7 @@ executable StructuralScraper
                     , ginger == 0.10.5.2
                     , text
                     , composition == 1.0.2.2
+                    , cond == 0.5.1
 
     -- Directories containing source files.
     hs-source-dirs:   app
