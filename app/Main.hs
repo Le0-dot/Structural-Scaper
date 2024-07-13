@@ -19,8 +19,8 @@ testDB = do
     putStrLn $ show r
     runCreate conn $ createExtractor "testExtractor" "div#id.asdf" TextType r
     d <- runCreateOne conn $ createDraft "testDraftRecipe" "asdf.asdf" 5000 "asfd" "zxcv" "asdf"
-    ed <- runCreateOne conn $ createExtractorDraft "testDraftRecipe" Nothing d
-    s <- runCreateOne conn $ createSelector "div" False (Just "asdf") True ed
+    ed <- runCreateOne conn $ createExtractorDraft "" (Just TextType) d
+    s <- runCreateOne conn $ createSelector "div" True (Just "asdf") True ed
     ss <- runCreateOne conn $ createSelectorClass "foo" True s
 
     putStrLn $ show $ buildTagSelector s [ss]
@@ -30,4 +30,4 @@ testServer :: IO ()
 testServer = do
     putStrLn "Server strated"
     withConnection "testDB.db" $
-        run 8080 . app
+        run 8000 . app

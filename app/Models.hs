@@ -205,7 +205,7 @@ toMaybeList f g = map $ uncurry toMaybe . (f &&& g)
 
 buildTagSelector :: Selector -> [SelectorClass] -> Maybe Text
 buildTagSelector selector selectorClasses =
-    toMaybe (_selectorTagIdIsTaken selector) $ foldl1 (<>) [tag, formattedId, formattedClasses]
+    toMaybe (_selectorTagIsTaken selector) $ foldl1 (<>) [tag, formattedId, formattedClasses]
     where tag = _selectorTag selector
           tagId = guard (_selectorTagIdIsTaken selector) *> _selectorTagId selector
           classes = toMaybeList _selectorClassIsTaken _selectorClassValue selectorClasses
