@@ -2,5 +2,7 @@ dist*
 
 *.db
 
+tailwindcss
+
 static/src/js/htmx/*
 static/src/css/style.css

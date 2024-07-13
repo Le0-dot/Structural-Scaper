@@ -10,7 +10,7 @@ init-db:
 	sqlite3 $(db) < init.sql
 
 tailwind:
-	tailwindcss -c $(tailwind_config) -i $(tailwind_input) -o $(tailwind_output) --minify
+	./tailwindcss -c $(tailwind_config) -i $(tailwind_input) -o $(tailwind_output) --minify
 
 run: rm-db init-db tailwind
 	cabal run
@@ -20,7 +20,7 @@ download-htmx:
 	wget https://unpkg.com/htmx.org@2.0.1/dist/htmx.min.js -P $(htmx_dir)
 	wget https://unpkg.com/htmx.org@2.0.1/dist/ext/json-enc.js -P $(htmx_dir)
 
-download-tailwind:
+download-tailwind-executable:
 	wget https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.4/tailwindcss-linux-x64 -O tailwindcss
 	chmod +x tailwindcss
 
@@ -33,5 +33,10 @@ rm-htmx:
 rm-tailwind:
 	rm $(tailwind_output)
 
-clean: rm-db rm-tailwind
+rm-tailwind-executalbe:
+	rm tailwindcss
+
+init: download-htmx download-tailwind-executable
+
+clean: rm-db rm-htmx rm-tailwind
 	cabal clean
