@@ -16,6 +16,10 @@ import Data.Composition ((.:.))
 linkTailwind :: Html
 linkTailwind = link ! rel "stylesheet" ! href "/static/css/style.css"
 
+linkHtmx :: Html
+linkHtmx = script "" ! src "/static/js/htmx/htmx.min.js"
+        <> script "" ! src "/static/js/htmx/json-enc.js"
+
 index :: Html
 index = docTypeHtml $ do
     H.head $ do
@@ -74,6 +78,7 @@ draftView :: Draft -> [ExtractorDraft] -> [Text] -> Html
 draftView draft extractors selectors = docTypeHtml $ do
     H.head $ do
         linkTailwind
+        linkHtmx
         H.title $ toHtml $ "Structural Scraper - edit " <> _draftName draft
     H.body ! class_ "flex flex-col h-full" $ do
         H.div ! class_ "flex grow" $ do
