@@ -1,10 +1,3 @@
-DROP TABLE recipe;
-DROP TABLE extractor;
-DROP TABLE draft;
-DROP TABLE extractor_draft;
-DROP TABLE selector;
-DROP TABLE selector_class;
-
 CREATE TABLE recipe (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL,

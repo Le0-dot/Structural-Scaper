@@ -12,7 +12,7 @@ init-db:
 tailwind:
 	tailwindcss -c $(tailwind_config) -i $(tailwind_input) -o $(tailwind_output) --minify
 
-run: init-db tailwind
+run: rm-db init-db tailwind
 	cabal run
 
 download-htmx:
@@ -25,7 +25,7 @@ download-tailwind:
 	chmod +x tailwindcss
 
 rm-db:
-	rm $(db)
+	rm -f $(db)
 
 rm-htmx:
 	rm -rf $(htmx_dir)
