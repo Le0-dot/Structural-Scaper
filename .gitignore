@@ -1,4 +1,6 @@
 dist*
 
+*.db
+
 static/src/js/htmx/*
 static/src/css/style.css
