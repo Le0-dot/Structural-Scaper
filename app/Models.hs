@@ -21,9 +21,9 @@ import qualified Data.Text as T
 import Data.Int
 import Data.Maybe (catMaybes, fromMaybe)
 import Control.Monad (guard)
-import Control.Arrow ((&&&))
 import Data.Composition
 import Data.Aeson (FromJSON)
+import Util
 
 
 data RecipeT f = Recipe
@@ -201,12 +201,6 @@ scraperDb = defaultDbSettings `withDbModification`
                             , _selectorClassForSelector = SelectorId "selector"
                             }
                 }
-
-toMaybe :: Bool -> a -> Maybe a
-toMaybe b a = guard b *> pure a
-
-toMaybeList :: (a -> Bool) -> (a -> b) -> [a] -> [Maybe b]
-toMaybeList f g = map $ uncurry toMaybe . (f &&& g)
 
 buildTagSelector :: Selector -> [SelectorClass] -> Maybe Text
 buildTagSelector selector selectorClasses =

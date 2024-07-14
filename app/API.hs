@@ -23,6 +23,7 @@ import CRUD
 import Data.Text (Text)
 import Control.Monad (forM)
 import Data.Aeson
+import Util
 
 
 data Index = Index
@@ -42,12 +43,6 @@ instance ToMarkup Edit where
 instance ToMarkup EditExtractorResponse where
     toMarkup (EditExtractorResponse extractor selector) = extractorView extractor selector
 
-
-newtype StringMaybe a = StringMaybe { stringMaybe :: Maybe a }
-
-instance FromJSON a => FromJSON (StringMaybe a) where
-    parseJSON "" = pure $ StringMaybe Nothing
-    parseJSON x = StringMaybe <$> parseJSON x
 
 data EditExtractorRequest = EditExtractorRequest Text (StringMaybe ExtractorType)
     deriving (Generic)

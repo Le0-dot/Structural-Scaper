@@ -9,8 +9,7 @@ import Data.Text (Text)
 import Models
 import Control.Conditional (if', (?<>))
 import qualified Data.Text as T
-import Data.Maybe (fromMaybe)
-import Data.Composition ((.:.))
+import Util
 
 
 linkTailwind :: Html
@@ -49,9 +48,6 @@ new = docTypeHtml $ do
             br
             input ! type_ "submit" ! value "Open"
 
-maybeEquals :: Eq a => a -> Maybe a -> Bool
-maybeEquals left right = fromMaybe False $ (left ==) <$> right
-
 extractorTypeSelected :: ExtractorType -> ExtractorDraft -> Attribute
 extractorTypeSelected extractorType extractor = (maybeEquals extractorType $ _extractorDraftType extractor) ?<> (selected "selected")
 
@@ -75,9 +71,6 @@ extractorView extractor selector = let exId = toValue $ _extractorDraftId extrac
                 option "innerHTML" ! extractorTypeSelected InnerHTML extractor
                 option "outerHTML" ! extractorTypeSelected OuterHTML extractor
         button "Delete"
-
-foldZipWith :: (Monoid m) => (a -> b -> m) -> [a] -> [b] -> m
-foldZipWith = foldl1 (<>) .:. zipWith
 
 draftView :: Draft -> [ExtractorDraft] -> [Text] -> Html
 draftView draft extractors selectors = docTypeHtml $ do
