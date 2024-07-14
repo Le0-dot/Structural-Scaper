@@ -24,6 +24,7 @@ import Control.Monad (guard)
 import Data.Composition
 import Data.Aeson (FromJSON)
 import Util
+import Data.Aeson.Types (FromJSON(..))
 
 
 data RecipeT f = Recipe
@@ -72,7 +73,12 @@ data ExtractorType = Href | TextType | InnerHTML | OuterHTML
                 deriving (Show, Read, Eq, Ord, Enum, Generic)
 
 
-deriving instance FromJSON ExtractorType
+instance FromJSON ExtractorType where
+    parseJSON "href" = pure Href
+    parseJSON "text" = pure TextType
+    parseJSON "innerHTML" = pure InnerHTML
+    parseJSON "outerHTML" = pure OuterHTML
+    parseJSON _ = fail "Not an extractor type"
 
 instance HasSqlValueSyntax be String => HasSqlValueSyntax be ExtractorType where
     sqlValueSyntax = autoSqlValueSyntax

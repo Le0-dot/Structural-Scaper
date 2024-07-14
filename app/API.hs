@@ -10,7 +10,6 @@
 
 module API where
 
-import GHC.Generics
 import Data.Int
 import Control.Monad.IO.Class (liftIO)
 import Servant
@@ -42,14 +41,6 @@ instance ToMarkup Edit where
 instance ToMarkup EditExtractorResponse where
     toMarkup (EditExtractorResponse extractor) = extractorView extractor
 
-
-data EditExtractorRequest = EditExtractorRequest Text (StringMaybe ExtractorType)
-    deriving (Generic)
-
-instance FromJSON EditExtractorRequest where
-    parseJSON = withObject "EditExtractorRequest" $ \v -> EditExtractorRequest
-        <$> v .: "name"
-        <*> v .: "value"
 
 type API = Get '[HTML] Index
         :<|> "new" :> Get '[HTML] New
