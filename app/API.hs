@@ -64,7 +64,11 @@ editController conn draftId = do
         Nothing -> throwError err404 { errBody = "Could not find draft with such id" }
         Just d -> do
             extractors <- liftIO $ runSelectList conn $ getExtractorsForDraft d
-            extractorsWithSelectors <- forM extractors $ liftIO . updateSelectorCache conn
+            extractorsWithSelectors <- forM extractors $ liftIO . updateSelectorCache conn -- Will update cache for all extractors on page reload
+                                                                                           -- Possibly add an invalidation flag to filter updates
+                                                                                           -- On the other hand, there could be only so many selectors on 1 page
+                                                                                           -- And considering that this application is supposed to be self-hosted
+                                                                                           -- This problem is not that serious
             return $ Edit d extractorsWithSelectors
 
 
@@ -80,12 +84,11 @@ updateSelectorCache conn extractor = do
 editExtractorController :: Connection -> Int32 -> EditExtractorRequest -> Handler EditExtractorResponse
 editExtractorController conn exId (EditExtractorRequest newName newType) = do
     extractor <- liftIO $ runSelectOne conn $ getExtractorDraft exId
-    case extractor of
+    EditExtractorResponse <$> case extractor of
         Nothing -> throwError err404 { errBody = "Could not find extractor with such id" }
         Just ex -> do
             let newExtractor = ex { _extractorDraftName = newName, _extractorDraftType = stringMaybe newType }
-            liftIO $ runUpdate conn $ saveExtractorDraft newExtractor
-            return $ EditExtractorResponse newExtractor
+            runAndReturn (liftIO . runUpdate conn . saveExtractorDraft) newExtractor
 
 apiProxy :: Proxy API
 apiProxy = Proxy
