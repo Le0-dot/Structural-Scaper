@@ -12,7 +12,6 @@ import Data.Int
 import Models
 
 
-
 createRecipe ::
     (BeamSqlBackend be, BeamSqlBackendCanSerialize be Text) =>
     Text -> Text -> Int32 -> Text -> Text -> Text -> SqlInsert be RecipeT
@@ -35,11 +34,11 @@ createDraft name host delayMs filename content next =
     insertExpressions [ Draft default_ (val_ name) (val_ host) (val_ delayMs) (val_ filename) (val_ content) (val_ next) ]
 
 createExtractorDraft ::
-    (BeamSqlBackend be, BeamSqlBackendCanSerialize be (Maybe ExtractorType), BeamSqlBackendCanSerialize be Text) =>
+    (BeamSqlBackend be, BeamSqlBackendCanSerialize be (Maybe ExtractorType), BeamSqlBackendCanSerialize be Text, BeamSqlBackendCanSerialize be (Maybe Text)) =>
     Text -> Maybe ExtractorType -> Draft -> SqlInsert be ExtractorDraftT
 createExtractorDraft name extractorType draft =
     insert (_scraperExtractorDraft scraperDb) $
-    insertExpressions [ ExtractorDraft default_ (val_ name) (val_ extractorType) (val_ $ pk draft) ]
+    insertExpressions [ ExtractorDraft default_ (val_ name) (val_ Nothing) (val_ extractorType) (val_ $ pk draft) ]
 
 createSelector ::
     (BeamSqlBackend be, BeamSqlBackendCanSerialize be Text, BeamSqlBackendCanSerialize be (Maybe Text)) =>
@@ -99,8 +98,9 @@ getExtractorDraft exId = select
     $ all_ (_scraperExtractorDraft scraperDb)
 
 
+
 getSelectors ::
-    (HasQBuilder be, HasSqlEqualityCheck be Int32, BeamSqlBackendCanSerialize be Text, BeamSqlBackendCanSerialize be (Maybe ExtractorType)) =>
+    (HasQBuilder be, HasSqlEqualityCheck be Int32, BeamSqlBackendCanSerialize be Text, BeamSqlBackendCanSerialize be (Maybe ExtractorType), BeamSqlBackendCanSerialize be (Maybe Text)) =>
     ExtractorDraft -> SqlSelect be Selector
 getSelectors extractorDraft = select $ oneToMany_ (_scraperSelector scraperDb) _selectorForExtractorDraft (val_ extractorDraft)
 
@@ -109,6 +109,12 @@ getSelectorClasses ::
     Selector -> SqlSelect be SelectorClass
 getSelectorClasses selector = select $ oneToMany_ (_scraperSelectorClass scraperDb) _selectorClassForSelector (val_ selector)
 
+
+
+saveExtractorDraft ::
+    (HasSqlEqualityCheck be Int32, BeamSqlBackendCanSerialize be (Maybe Text), BeamSqlBackendCanSerialize be (Maybe ExtractorType), BeamSqlBackendCanSerialize be Text) =>
+    ExtractorDraft -> SqlUpdate be ExtractorDraftT
+saveExtractorDraft = save (_scraperExtractorDraft scraperDb)
 
 updateExtractorDraft ::
     (HasQBuilder be, HasSqlEqualityCheck be Int32, BeamSqlBackendCanSerialize be Text, BeamSqlBackendCanSerialize be (Maybe ExtractorType)) =>

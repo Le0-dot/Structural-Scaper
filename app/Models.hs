@@ -105,10 +105,11 @@ deriving instance Show DraftId
 
 
 data ExtractorDraftT f = ExtractorDraft
-        { _extractorDraftId        :: C f Int32
-        , _extractorDraftName      :: C f Text
-        , _extractorDraftType      :: C f (Maybe ExtractorType)
-        , _extractorDraftForDraft  :: PrimaryKey DraftT f
+        { _extractorDraftId            :: C f Int32
+        , _extractorDraftName          :: C f Text
+        , _extractorDraftSelectorCache :: C f (Maybe Text)
+        , _extractorDraftType          :: C f (Maybe ExtractorType)
+        , _extractorDraftForDraft      :: PrimaryKey DraftT f
         } deriving (Generic, Beamable)
 
 type ExtractorDraft = ExtractorDraftT Identity
@@ -183,6 +184,7 @@ scraperDb = defaultDbSettings `withDbModification`
                         tableModification
                             { _extractorDraftId = "id"
                             , _extractorDraftName = "name"
+                            , _extractorDraftSelectorCache = "selector_cache"
                             , _extractorDraftType = "type"
                             , _extractorDraftForDraft = DraftId "draft"
                             }
@@ -211,5 +213,5 @@ buildTagSelector selector selectorClasses =
           formattedId = fromMaybe "" $ ("#" <>) <$> tagId
           formattedClasses = T.concat $ map ("." <>) $ catMaybes classes
 
-buildSelector :: [Selector] -> [[SelectorClass]] -> Text
-buildSelector = T.unwords . catMaybes .: zipWith buildTagSelector
+buildSelector :: [Selector] -> [[SelectorClass]] -> Maybe Text
+buildSelector = toMaybePred (not . T.null) . T.unwords . catMaybes .: zipWith buildTagSelector

@@ -20,16 +20,15 @@ import Database.SQLite.Simple
 import View
 import Models
 import CRUD
-import Data.Text (Text)
 import Control.Monad (forM)
-import Data.Aeson
+import Schema
 import Util
 
 
 data Index = Index
 data New = New
-data Edit = Edit Draft [ExtractorDraft] [Text]
-data EditExtractorResponse = EditExtractorResponse ExtractorDraft Text
+data Edit = Edit Draft [ExtractorDraft]
+data EditExtractorResponse = EditExtractorResponse ExtractorDraft
 
 instance ToMarkup Index where
     toMarkup _ = index
@@ -38,10 +37,10 @@ instance ToMarkup New where
     toMarkup _ = new
 
 instance ToMarkup Edit where
-    toMarkup (Edit d es ts) = draftView d es ts
+    toMarkup (Edit d es) = draftView d es
 
 instance ToMarkup EditExtractorResponse where
-    toMarkup (EditExtractorResponse extractor selector) = extractorView extractor selector
+    toMarkup (EditExtractorResponse extractor) = extractorView extractor
 
 
 data EditExtractorRequest = EditExtractorRequest Text (StringMaybe ExtractorType)
@@ -74,25 +73,28 @@ editController conn draftId = do
         Nothing -> throwError err404 { errBody = "Could not find draft with such id" }
         Just d -> do
             extractors <- liftIO $ runSelectList conn $ getExtractorsForDraft d
-            selectors <- forM extractors $ liftIO . makeSelector conn
-            return $ Edit d extractors selectors
+            extractorsWithSelectors <- forM extractors $ liftIO . updateSelectorCache conn
+            return $ Edit d extractorsWithSelectors
 
-makeSelector :: Connection -> ExtractorDraft -> IO Text
-makeSelector conn extractor = do
+
+updateSelectorCache :: Connection -> ExtractorDraft -> IO ExtractorDraft
+updateSelectorCache conn extractor = do
     selectors <- runSelectList conn $ getSelectors extractor
     selectorClasses <- forM selectors $ runSelectList conn . getSelectorClasses
-    return $ buildSelector selectors selectorClasses
+    let selector = buildSelector selectors selectorClasses
+    let newExtractor = extractor { _extractorDraftSelectorCache = selector }
+    runAndReturn (runUpdate conn . saveExtractorDraft) newExtractor
+
 
 editExtractorController :: Connection -> Int32 -> EditExtractorRequest -> Handler EditExtractorResponse
 editExtractorController conn exId (EditExtractorRequest newName newType) = do
-    extractor <- liftIO $ do
-        runUpdate conn $ updateExtractorDraft exId newName $ stringMaybe newType
-        runSelectOne conn $ getExtractorDraft exId
+    extractor <- liftIO $ runSelectOne conn $ getExtractorDraft exId
     case extractor of
         Nothing -> throwError err404 { errBody = "Could not find extractor with such id" }
         Just ex -> do
-            selector <- liftIO $ makeSelector conn ex
-            return $ EditExtractorResponse ex selector
+            let newExtractor = ex { _extractorDraftName = newName, _extractorDraftType = stringMaybe newType }
+            liftIO $ runUpdate conn $ saveExtractorDraft newExtractor
+            return $ EditExtractorResponse newExtractor
 
 apiProxy :: Proxy API
 apiProxy = Proxy

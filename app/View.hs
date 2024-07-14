@@ -7,9 +7,10 @@ import Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Htmx
 import Data.Text (Text)
 import Models
-import Control.Conditional (if', (?<>))
+import Control.Conditional ((?<>))
 import qualified Data.Text as T
 import Util
+import Data.Maybe
 
 
 linkTailwind :: Html
@@ -51,29 +52,45 @@ new = docTypeHtml $ do
 extractorTypeSelected :: ExtractorType -> ExtractorDraft -> Attribute
 extractorTypeSelected extractorType extractor = (maybeEquals extractorType $ _extractorDraftType extractor) ?<> (selected "selected")
 
-extractorView :: ExtractorDraft -> Text -> Html
-extractorView extractor selector = let exId = toValue $ _extractorDraftId extractor in do
-    H.div ! A.id ("extractor-" <> exId) ! class_ "flex-col" $ do
+extractorView :: ExtractorDraft -> Html
+extractorView extractor = do
+    H.div ! A.id thisId ! class_ "flex-col" $ do
         H.div ! class_ "flex" $
             inputElement "name" (_extractorDraftName extractor)
+                ! A.id inputId
                 ! class_ "grow"
-                ! hxPut ("/edit/extractor/" <> exId)
-                ! hxTarget ("div#extractor-" <> exId)
+                ! hxPut putUrl
+                ! hxTarget ("div#" <> thisId)
                 ! hxSwap "outerHTML"
-                ! hxInclude "select#value"
+                ! hxInclude ("select#" <> selectId)
+                ! hxTrigger "input changed delay:500ms"
+                ! onkeypress "return event.charCode != 32" -- Does not allow empty space
         H.div ! class_ "flex, flex-row" $ do
             H.span "Selector: " ! class_ "flex-none"
-            H.span (toHtml $ if' (T.null selector) "None" selector) ! class_ "grow"
-            select ! A.id "value" ! name "value" $ do
+            H.span (toHtml $ fromMaybe "None" $ _extractorDraftSelectorCache extractor) ! class_ "grow"
+            select
+                ! A.id selectId
+                ! name "value"
+                ! hxExt "json-enc"
+                ! hxPut putUrl
+                ! hxTarget ("div#" <> thisId)
+                ! hxSwap "outerHTML"
+                ! hxInclude ("input#" <> inputId)
+                $ do
                 option "None" ! value "" ! class_ "hidden"
                 option "href" ! extractorTypeSelected Href extractor -- TODO: Check if tag is <a>
                 option "text" ! extractorTypeSelected TextType extractor
                 option "innerHTML" ! extractorTypeSelected InnerHTML extractor
                 option "outerHTML" ! extractorTypeSelected OuterHTML extractor
         button "Delete"
+    where exId = toValue $ _extractorDraftId extractor
+          putUrl = "/edit/extractor/" <> exId
+          thisId = "extractor-" <> exId
+          inputId = "name-" <> exId
+          selectId = "value-" <> exId
 
-draftView :: Draft -> [ExtractorDraft] -> [Text] -> Html
-draftView draft extractors selectors = docTypeHtml $ do
+draftView :: Draft -> [ExtractorDraft] -> Html
+draftView draft extractors = docTypeHtml $ do
     H.head $ do
         linkTailwind
         linkHtmx
@@ -82,7 +99,7 @@ draftView draft extractors selectors = docTypeHtml $ do
         H.div ! class_ "flex grow" $ do
             H.div ! class_ "basis-1/2" $ do
                 h2 "Extractors" ! class_ "text-center"
-                H.div ! A.id "extractors" $ foldZipWith extractorView extractors selectors
+                H.div ! A.id "extractors" $ foldMap extractorView extractors
                 H.div ! class_ "flex justify-center" $ do
                     button "Add extractor"
             H.div ! class_ "basis-1/2 flex flex-col" $ do
@@ -103,7 +120,6 @@ draftView draft extractors selectors = docTypeHtml $ do
 
 inputElement :: Text -> Text -> Html
 inputElement elName elValue = input
-    ! A.id (toValue elName)
     ! name (toValue elName)
     ! value (toValue elValue)
     ! placeholder (toValue $ T.toTitle elName <> "...")

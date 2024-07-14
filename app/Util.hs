@@ -3,7 +3,6 @@
 module Util where
 
 import Data.Maybe (fromMaybe)
-import Data.Composition ((.:.))
 import Control.Conditional (guard)
 import Control.Arrow ((&&&))
 import Data.Aeson (FromJSON(..), ToJSON(..))
@@ -15,11 +14,14 @@ maybeEquals left right = fromMaybe False $ (left ==) <$> right
 toMaybe :: Bool -> a -> Maybe a
 toMaybe b a = guard b *> pure a
 
+toMaybePred :: (a -> Bool) -> a -> Maybe a
+toMaybePred p = uncurry toMaybe . (p &&& id)
+
 toMaybeList :: (a -> Bool) -> (a -> b) -> [a] -> [Maybe b]
 toMaybeList f g = map $ uncurry toMaybe . (f &&& g)
 
-foldZipWith :: (Monoid m) => (a -> b -> m) -> [a] -> [b] -> m
-foldZipWith = foldl1 (<>) .:. zipWith
+runAndReturn :: Monad m => (a -> m ()) -> a -> m a
+runAndReturn a v = a v >> return v
 
 
 newtype StringMaybe a = StringMaybe { stringMaybe :: Maybe a }

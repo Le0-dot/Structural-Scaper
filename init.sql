@@ -30,6 +30,7 @@ CREATE TABLE draft (
 CREATE TABLE extractor_draft (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL,
+    selector_cache VARCHAR,
     type VARCHAR,
     draft INTEGER NOT NULL,
     FOREIGN KEY(draft) REFERENCES draft(id)
