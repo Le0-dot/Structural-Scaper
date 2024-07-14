@@ -56,15 +56,20 @@ extractorTypeSelected :: ExtractorType -> ExtractorDraft -> Attribute
 extractorTypeSelected extractorType extractor = (maybeEquals extractorType $ _extractorDraftType extractor) ?<> (selected "selected")
 
 extractorView :: ExtractorDraft -> Text -> Html
-extractorView extractor selector = docTypeHtml $ do
-    H.div ! A.id "extractor" ! class_ "flex-col" $ do
+extractorView extractor selector = let exId = toValue $ _extractorDraftId extractor in do
+    H.div ! A.id ("extractor-" <> exId) ! class_ "flex-col" $ do
         H.div ! class_ "flex" $
-            inputElement "name" (_extractorDraftName extractor) ! class_ "grow"
+            inputElement "name" (_extractorDraftName extractor)
+                ! class_ "grow"
+                ! hxPut ("/edit/extractor/" <> exId)
+                ! hxTarget ("div#extractor-" <> exId)
+                ! hxSwap "outerHTML"
+                ! hxInclude "select#value"
         H.div ! class_ "flex, flex-row" $ do
             H.span "Selector: " ! class_ "flex-none"
             H.span (toHtml $ if' (T.null selector) "None" selector) ! class_ "grow"
-            select ! name "value" $ do
-                option "None" ! class_ "hidden"
+            select ! A.id "value" ! name "value" $ do
+                option "None" ! value "" ! class_ "hidden"
                 option "href" ! extractorTypeSelected Href extractor -- TODO: Check if tag is <a>
                 option "text" ! extractorTypeSelected TextType extractor
                 option "innerHTML" ! extractorTypeSelected InnerHTML extractor
@@ -109,3 +114,4 @@ inputElement elName elValue = input
     ! name (toValue elName)
     ! value (toValue elValue)
     ! placeholder (toValue $ T.toTitle elName <> "...")
+    ! hxExt "json-enc"

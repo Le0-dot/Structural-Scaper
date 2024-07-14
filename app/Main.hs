@@ -4,7 +4,6 @@ module Main where
 
 import Database.SQLite.Simple
 import Network.Wai.Handler.Warp
-import Models
 import CRUD
 import API
 
@@ -15,15 +14,13 @@ main = testDB >> testServer
 testDB :: IO ()
 testDB = do
     conn <- open "testDB.db"
-    r <- runCreateOne conn $ createRecipe "testRecipe" "example.com" 3000 "{{ filename }}" "{{ text }}" "{{ url }}"
-    putStrLn $ show r
-    runCreate conn $ createExtractor "testExtractor" "div#id.asdf" TextType r
     d <- runCreateOne conn $ createDraft "testDraftRecipe" "asdf.asdf" 5000 "asfd" "zxcv" "asdf"
-    ed <- runCreateOne conn $ createExtractorDraft "" (Just TextType) d
+    ed <- runCreateOne conn $ createExtractorDraft "" (Nothing) d
     s <- runCreateOne conn $ createSelector "div" True (Just "asdf") True ed
-    ss <- runCreateOne conn $ createSelectorClass "foo" True s
+    runCreate conn $ createSelectorClass "foo" True s
 
-    putStrLn $ show $ buildTagSelector s [ss]
+    putStrLn $ show ed
+
     close conn
 
 testServer :: IO ()

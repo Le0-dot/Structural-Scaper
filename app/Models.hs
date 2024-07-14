@@ -23,6 +23,7 @@ import Data.Maybe (catMaybes, fromMaybe)
 import Control.Monad (guard)
 import Control.Arrow ((&&&))
 import Data.Composition
+import Data.Aeson (FromJSON)
 
 
 data RecipeT f = Recipe
@@ -68,13 +69,17 @@ deriving instance Show ExtractorId
 
 
 data ExtractorType = Href | TextType | InnerHTML | OuterHTML
-                deriving (Show, Read, Eq, Ord, Enum)
+                deriving (Show, Read, Eq, Ord, Enum, Generic)
+
+
+deriving instance FromJSON ExtractorType
 
 instance HasSqlValueSyntax be String => HasSqlValueSyntax be ExtractorType where
     sqlValueSyntax = autoSqlValueSyntax
 
 instance FromBackendRow Sqlite ExtractorType where
     fromBackendRow = read . T.unpack <$> fromBackendRow
+
 
 
 data DraftT f = Draft

@@ -91,6 +91,14 @@ getExtractorsForDraft ::
     Draft -> SqlSelect be ExtractorDraft
 getExtractorsForDraft draft = select $ oneToMany_ (_scraperExtractorDraft scraperDb) _extractorDraftForDraft (val_ draft)
 
+getExtractorDraft ::
+    (HasQBuilder be, HasSqlEqualityCheck be Int32) =>
+    Int32 -> SqlSelect be ExtractorDraft
+getExtractorDraft exId = select
+    $ filter_ (\ex -> _extractorDraftId ex ==. val_ exId)
+    $ all_ (_scraperExtractorDraft scraperDb)
+
+
 getSelectors ::
     (HasQBuilder be, HasSqlEqualityCheck be Int32, BeamSqlBackendCanSerialize be Text, BeamSqlBackendCanSerialize be (Maybe ExtractorType)) =>
     ExtractorDraft -> SqlSelect be Selector
@@ -100,6 +108,17 @@ getSelectorClasses ::
     (HasQBuilder be, HasSqlEqualityCheck be Int32, BeamSqlBackendCanSerialize be Text, BeamSqlBackendCanSerialize be (Maybe Text)) =>
     Selector -> SqlSelect be SelectorClass
 getSelectorClasses selector = select $ oneToMany_ (_scraperSelectorClass scraperDb) _selectorClassForSelector (val_ selector)
+
+
+updateExtractorDraft ::
+    (HasQBuilder be, HasSqlEqualityCheck be Int32, BeamSqlBackendCanSerialize be Text, BeamSqlBackendCanSerialize be (Maybe ExtractorType)) =>
+    Int32 -> Text -> Maybe ExtractorType -> SqlUpdate be ExtractorDraftT
+updateExtractorDraft exId newName newType = update (_scraperExtractorDraft scraperDb)
+    (\ex -> mconcat
+            [ _extractorDraftName ex <-. val_ newName
+            , _extractorDraftType ex <-. val_ newType
+            ])
+    (\ex -> _extractorDraftId ex ==. val_ exId)
 
 
 runCreate :: Connection -> SqlInsert Sqlite a -> IO ()
@@ -118,3 +137,6 @@ runSelectList conn = runBeamSqliteDebug putStrLn conn . runSelectReturningList
 
 runSelectOne :: FromBackendRow Sqlite a => Connection -> SqlSelect Sqlite a -> IO (Maybe a)
 runSelectOne conn = runBeamSqliteDebug putStrLn conn . runSelectReturningOne
+
+runUpdate :: Connection -> SqlUpdate Sqlite a -> IO ()
+runUpdate conn = runBeamSqliteDebug putStrLn conn . Database.Beam.runUpdate

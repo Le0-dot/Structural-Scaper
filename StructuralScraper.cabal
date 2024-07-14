@@ -84,6 +84,7 @@ executable StructuralScraper
                     , text
                     , composition == 1.0.2.2
                     , cond == 0.5.1
+                    , aeson == 2.2.3.0
 
     -- Directories containing source files.
     hs-source-dirs:   app
