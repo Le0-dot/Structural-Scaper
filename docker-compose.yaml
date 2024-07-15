@@ -1,0 +1,7 @@
+services:
+  selenium:
+    image: selenium/standalone-firefox
+    shm_size: "2gb"
+    ports:
+      - 4444:4444
+      - 7900:7900

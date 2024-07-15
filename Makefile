@@ -4,6 +4,7 @@ tailwind_input := static/tailwind.css
 tailwind_output := static/src/css/style.css
 htmx_dir := static/src/js/htmx
 
+
 all: run
 
 init-db:
@@ -12,7 +13,13 @@ init-db:
 tailwind:
 	./tailwindcss -c $(tailwind_config) -i $(tailwind_input) -o $(tailwind_output) --minify
 
-run: rm-db init-db tailwind
+docker:
+	docker compose up -d
+
+docker-stop: docker
+	docker compose down
+
+run: rm-db init-db tailwind docker
 	cabal run
 
 build:
@@ -41,5 +48,5 @@ rm-tailwind-executalbe:
 
 init: download-htmx download-tailwind-executable
 
-clean: rm-db rm-htmx rm-tailwind
+clean: rm-db rm-htmx rm-tailwind docker-stop
 	cabal clean
