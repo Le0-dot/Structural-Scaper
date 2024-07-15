@@ -15,6 +15,9 @@ tailwind:
 run: rm-db init-db tailwind
 	cabal run
 
+build:
+	cabal build
+
 download-htmx:
 	mkdir -p $(htmx_dir)
 	wget https://unpkg.com/htmx.org@2.0.1/dist/htmx.min.js -P $(htmx_dir)
