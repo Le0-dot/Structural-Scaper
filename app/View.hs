@@ -59,11 +59,10 @@ extractorView extractor = do
             inputElement "name" (_extractorDraftName extractor)
                 ! A.id inputId
                 ! class_ "grow"
-                ! hxPut putUrl
+                ! hxPut handleUrl
                 ! hxTarget ("div#" <> thisId)
                 ! hxSwap "outerHTML"
                 ! hxInclude ("select#" <> selectId)
-                ! hxTrigger "input changed delay:500ms"
                 ! onkeypress "return event.charCode != 32" -- Does not allow empty space
         H.div ! class_ "flex, flex-row" $ do
             H.span "Selector: " ! class_ "flex-none"
@@ -72,7 +71,7 @@ extractorView extractor = do
                 ! A.id selectId
                 ! name "value"
                 ! hxExt "json-enc"
-                ! hxPut putUrl
+                ! hxPut handleUrl
                 ! hxTarget ("div#" <> thisId)
                 ! hxSwap "outerHTML"
                 ! hxInclude ("input#" <> inputId)
@@ -83,8 +82,12 @@ extractorView extractor = do
                 option "innerHTML" ! extractorTypeSelected InnerHTML extractor
                 option "outerHTML" ! extractorTypeSelected OuterHTML extractor
         button "Delete"
+            ! hxDelete handleUrl
+            ! hxTarget ("div#" <> thisId)
+            ! hxSwap "delete"
+            ! hxConfirm "Are you sure? This action is not reversible."
     where exId = toValue $ _extractorDraftId extractor
-          putUrl = "/edit/extractor/" <> exId
+          handleUrl = "/draft/extractor/" <> exId
           thisId = "extractor-" <> exId
           inputId = "name-" <> exId
           selectId = "value-" <> exId
@@ -102,20 +105,37 @@ draftView draft extractors = docTypeHtml $ do
                 H.div ! A.id "extractors" $ foldMap extractorView extractors
                 H.div ! class_ "flex justify-center" $ do
                     button "Add extractor"
+                        ! hxGet ("/draft/extractor/new/" <> dId)
+                        ! hxTarget "div#extractors"
+                        ! hxSwap "beforeend"
             H.div ! class_ "basis-1/2 flex flex-col" $ do
                 h2 "Template" ! class_ "text-center"
                 H.div ! class_ "flex" $ do
-                    inputElement "filename" (_draftTemplateFilename draft) ! class_ "grow"
+                    inputElement "filename" (_draftTemplateFilename draft)
+                        ! class_ "basis-1/2"
+                        ! hxPut ("/draft/" <> dId <> "/filename")
+                        ! hxTarget "next"
+                    H.div "" ! class_ "basis-1/2"
                 H.div ! class_ "flex" $ do
-                    inputElement "next" (_draftTemplateNext draft) ! class_ "grow"
+                    inputElement "next" (_draftTemplateNext draft)
+                        ! class_ "basis-1/2"
+                        ! hxPut ("/draft/" <> dId <> "/next")
+                        ! hxTarget "next"
+                    H.div "" ! class_ "basis-1/2"
                 H.div ! class_ "flex" $ do
                     textarea (toMarkup $ _draftTemplateContent draft)
-                        ! class_ "resize-none grow"
+                        ! class_ "resize-none basis-1/2"
                         ! A.id "content"
                         ! name "content"
                         ! placeholder "Content..."
+                        ! hxExt "json-enc"
+                        ! hxPut ("/draft/" <> dId <> "/content")
+                        ! hxTrigger "input changed delay:1s"
+                        ! hxTarget "next"
+                    H.div "" ! class_ "basis-1/2"
         H.div ! class_ "flex justify-center" $ button "Save"
         H.div ! class_ "flex justify-center" $ H.span "" ! A.id "save-message"
+    where dId = toValue $ _draftId draft
 
 
 inputElement :: Text -> Text -> Html
@@ -124,3 +144,4 @@ inputElement elName elValue = input
     ! value (toValue elValue)
     ! placeholder (toValue $ T.toTitle elName <> "...")
     ! hxExt "json-enc"
+    ! hxTrigger "input changed delay:500ms"

@@ -25,6 +25,7 @@ import Data.Composition
 import Data.Aeson (FromJSON)
 import Util
 import Data.Aeson.Types (FromJSON(..))
+import Servant (FromHttpApiData (parseUrlPiece))
 
 
 data RecipeT f = Recipe
@@ -87,7 +88,6 @@ instance FromBackendRow Sqlite ExtractorType where
     fromBackendRow = read . T.unpack <$> fromBackendRow
 
 
-
 data DraftT f = Draft
         { _draftId                :: C f Int32
         , _draftName              :: C f Text
@@ -109,6 +109,9 @@ instance Table DraftT where
 type DraftId = PrimaryKey DraftT Identity
 deriving instance Show DraftId
 
+instance FromHttpApiData DraftId where
+    parseUrlPiece = (DraftId <$>) . parseUrlPiece
+
 
 data ExtractorDraftT f = ExtractorDraft
         { _extractorDraftId            :: C f Int32
@@ -128,6 +131,9 @@ instance Table ExtractorDraftT where
 
 type ExtractorDraftId = PrimaryKey ExtractorDraftT Identity
 deriving instance Show ExtractorDraftId
+
+instance FromHttpApiData ExtractorDraftId where
+    parseUrlPiece = (ExtractorDraftId <$>) . parseUrlPiece
 
 
 data SelectorT f = Selector

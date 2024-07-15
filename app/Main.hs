@@ -15,7 +15,7 @@ testDB :: IO ()
 testDB = do
     conn <- open "testDB.db"
     d <- runCreateOne conn $ createDraft "testDraftRecipe" "asdf.asdf" 5000 "asfd" "zxcv" "asdf"
-    ed <- runCreateOne conn $ createExtractorDraft "" (Nothing) d
+    ed <- runCreateOne conn $ createExtractorDraft $ d
     s <- runCreateOne conn $ createSelector "div" True (Just "asdf") True ed
     runCreate conn $ createSelectorClass "foo" True s
 
